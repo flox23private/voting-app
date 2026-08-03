@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Time!</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.5s;
+      overflow: hidden;
+    }
+    body.waiting { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    body.question { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+    body.reveal { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+
+    .screen {
+      text-align: center;
+      padding: 2rem;
+      width: 100%;
+      max-width: 600px;
+    }
+    .hidden { display: none !important; }
+
+    /* Waiting Screen */
+    .waiting-text {
+      color: white;
+      font-size: 2rem;
+      font-weight: 700;
+      animation: pulse 2s infinite;
+    }
+    .waiting-sub { color: rgba(255,255,255,0.7); font-size: 1.1rem; margin-top: 1rem; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Question Screen */
+    .question-text {
+      color: white;
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+    }
+    .timer {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: white;
+      border: 4px solid rgba(255,255,255,0.4);
+      transition: all 0.3s;
+    }
+    .timer.urgent { border-color: #f5576c; color: #f5576c; animation: shake 0.5s infinite; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      75% { transform: translateX(3px); }
+    }
+
+    .options { display: flex; flex-direction: column; gap: 0.75rem; }
+    .option-btn {
+      padding: 1.25rem 1.5rem;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.3s;
+      text-align: left;
+    }
+    .option-btn:active { transform: scale(0.96); }
+    .option-btn.selected { outline: 4px solid white; transform: scale(0.97); }
+    .option-btn.disabled { pointer-events: none; opacity: 0.5; }
+    .option-btn:nth-child(1) { background: #e21b3c; }
+    .option-btn:nth-child(2) { background: #1368ce; }
+    .option-btn:nth-child(3) { background: #d89e00; }
+
+    /* Reveal Screen */
+    .reveal-title {
+      color: white;
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+    .reveal-question {
+      color: rgba(255,255,255,0.9);
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      padding: 0.75rem;
+      background: rgba(255,255,255,0.15);
+      border-radius: 8px;
+    }
+    .reveal-options { display: flex; flex-direction: column; gap: 0.75rem; }
+    .reveal-option {
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: white;
+      display: flex;
+      align-items: center;
+      transition: all 0.5s;
+    }
+    .reveal-option.correct { background: rgba(40, 167, 69, 0.9); box-shadow: 0 0 20px rgba(40,167,69,0.4); }
+    .reveal-option.wrong { background: rgba(108, 117, 125, 0.7); }
+    .reveal-option-text { flex-shrink: 0; }
+    .vote-bar {
+      background: rgba(255,255,255,0.3);
+      border-radius: 4px;
+      height: 10px;
+      flex: 1;
+      margin: 0 1rem;
+      overflow: hidden;
+    }
+    .vote-bar-fill { height: 100%; background: white; border-radius: 4px; transition: width 1s ease-out; }
+    .vote-count { min-width: 40px; text-align: right; font-size: 1rem; font-weight: 700; }
+
+    /* Music Toggle */
+    .music-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: white;
+    }
+  </style>
+</head>
+<body class="waiting">
+  <button class="music-toggle" id="music-toggle">🔊</button>
+
+  <!-- Waiting Screen -->
+  <div class="screen" id="screen-waiting">
+    <div class="waiting-text">Get Ready!</div>
+    <div class="waiting-sub">Waiting for the host to start...</div>
+  </div>
+
+  <!-- Question Screen -->
+  <div class="screen hidden" id="screen-question">
+    <div class="question-text" id="q-text"></div>
+    <div class="timer" id="timer">10</div>
+    <div class="options" id="options"></div>
+  </div>
+
+  <!-- Reveal Screen -->
+  <div class="screen hidden" id="screen-reveal">
+    <div class="reveal-title">Results</div>
+    <div class="reveal-question" id="reveal-question"></div>
+    <div class="reveal-options" id="reveal-options"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const quizId = window.location.pathname.split("/").pop();
+
+    let timerInterval = null;
+    let selectedAnswer = null;
+    let currentQuestionData = null;
+    let musicMuted = false;
+
+    let audioCtx = null;
+    let musicGain = null;
+
+    function getAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioCtx;
+    }
+
+    function playTickMusic() {
+      stopMusic();
+      try {
+        const ctx = getAudioCtx();
+        musicGain = ctx.createGain();
+        musicGain.gain.value = musicMuted ? 0 : 0.15;
+        musicGain.connect(ctx.destination);
+
+        const notes = [523, 587, 659, 698, 784, 698, 659, 587];
+        let noteIdx = 0;
+        let active = true;
+
+        function playNote() {
+          if (!active) return;
+          const osc = ctx.createOscillator();
+          osc.type = "square";
+          osc.frequency.value = notes[noteIdx % notes.length];
+          osc.connect(musicGain);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.12);
+          noteIdx++;
+          setTimeout(playNote, 250);
+        }
+
+        playNote();
+        musicGain._stop = () => { active = false; };
+      } catch (e) {}
+    }
+
+    function playRevealSound() {
+      stopMusic();
+      try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        gain.gain.value = musicMuted ? 0 : 0.2;
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(400, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(800, ctx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.4);
+      } catch (e) {}
+    }
+
+    function stopMusic() {
+      if (musicGain && musicGain._stop) musicGain._stop();
+      musicGain = null;
+    }
+
+    document.getElementById("music-toggle").addEventListener("click", () => {
+      musicMuted = !musicMuted;
+      document.getElementById("music-toggle").textContent = musicMuted ? "🔇" : "🔊";
+      if (musicGain) musicGain.gain.value = musicMuted ? 0 : 0.15;
+    });
+
+    function showScreen(name) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
+      document.getElementById(`screen-${name}`).classList.remove("hidden");
+      document.body.className = name;
+    }
+
+    socket.emit("join-quiz", quizId);
+
+    socket.on("quiz-state", ({ state }) => {
+      if (state === "waiting") showScreen("waiting");
+    });
+
+    socket.on("new-question", ({ text, options }) => {
+      selectedAnswer = null;
+      currentQuestionData = { text, options };
+      showScreen("question");
+
+      document.getElementById("q-text").textContent = text;
+
+      const optionsEl = document.getElementById("options");
+      optionsEl.innerHTML = "";
+      options.forEach((opt, i) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.textContent = opt;
+        btn.addEventListener("click", () => selectAnswer(i, btn));
+        optionsEl.appendChild(btn);
+      });
+
+      let timeLeft = 10;
+      const timerEl = document.getElementById("timer");
+      timerEl.textContent = timeLeft;
+      timerEl.classList.remove("urgent");
+
+      playTickMusic();
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = timeLeft;
+        if (timeLeft <= 3) timerEl.classList.add("urgent");
+        if (timeLeft <= 0) clearInterval(timerInterval);
+      }, 1000);
+    });
+
+    function selectAnswer(index, btn) {
+      if (selectedAnswer !== null) return;
+      selectedAnswer = index;
+
+      document.querySelectorAll(".option-btn").forEach(b => b.classList.add("disabled"));
+      btn.classList.remove("disabled");
+      btn.classList.add("selected");
+
+      socket.emit("submit-vote", { quizId, answerIndex: index });
+    }
+
+    socket.on("reveal", ({ correctIndex, votes, question, options }) => {
+      clearInterval(timerInterval);
+      stopMusic();
+      playRevealSound();
+      showScreen("reveal");
+
+      const questionText = question || (currentQuestionData && currentQuestionData.text) || "";
+      const optionsList = options || (currentQuestionData && currentQuestionData.options) || [];
+      const totalVotes = votes.reduce((a, b) => a + b, 0) || 1;
+
+      document.getElementById("reveal-question").textContent = questionText;
+      const revealEl = document.getElementById("reveal-options");
+      revealEl.innerHTML = "";
+
+      optionsList.forEach((opt, i) => {
+        const div = document.createElement("div");
+        div.className = `reveal-option ${i === correctIndex ? "correct" : "wrong"}`;
+        const pct = Math.round((votes[i] / totalVotes) * 100);
+        div.innerHTML = `
+          <span class="reveal-option-text">${i === correctIndex ? "✓" : "✗"} ${opt}</span>
+          <div class="vote-bar"><div class="vote-bar-fill" style="width: 0%"></div></div>
+          <span class="vote-count">${votes[i]} votes</span>
+        `;
+        revealEl.appendChild(div);
+
+        setTimeout(() => {
+          div.querySelector(".vote-bar-fill").style.width = `${pct}%`;
+        }, 100);
+      });
+    });
+  </script>
+</body>
+</html>
