@@ -78,6 +78,32 @@
     #admin-controls { text-align: center; margin-top: 1.5rem; }
     .hidden { display: none; }
 
+    /* Manual */
+    .manual-toggle {
+      display: block;
+      margin: 0 auto 1.5rem;
+      background: none;
+      border: none;
+      color: #667eea;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .manual {
+      background: #f0f0ff;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid #ddd;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #444;
+    }
+    .manual h3 { color: #667eea; margin-bottom: 0.5rem; font-size: 1rem; }
+    .manual ol { padding-left: 1.25rem; margin: 0; }
+    .manual li { margin-bottom: 0.4rem; }
+
     /* Results */
     .results-card {
       margin-top: 1.5rem;
@@ -117,6 +143,21 @@
 <body>
   <div class="card">
     <h1>Create Your Quiz</h1>
+
+    <button class="manual-toggle" id="manual-toggle">How does this work?</button>
+    <div class="manual hidden" id="manual">
+      <h3>How to use</h3>
+      <ol>
+        <li>Type your question and fill in the 3 answer options below.</li>
+        <li>Select the correct answer by clicking the radio button next to it.</li>
+        <li>Click <strong>Create Quiz</strong> — you'll get a shareable link.</li>
+        <li>Share the link with your players (they'll see a waiting screen).</li>
+        <li>When everyone is ready, click <strong>Start</strong>.</li>
+        <li>Players have <strong>10 seconds</strong> to pick an answer (with music!).</li>
+        <li>After 10 seconds, results are revealed — correct answer highlighted with a vote bar chart.</li>
+        <li>The results screen stays permanently. That's it!</li>
+      </ol>
+    </div>
 
     <div id="quiz-form">
       <div class="question-block">
@@ -166,6 +207,12 @@
     const socket = io();
     let quizId = null;
     let quizData = null;
+
+    document.getElementById("manual-toggle").addEventListener("click", () => {
+      const manual = document.getElementById("manual");
+      manual.classList.toggle("hidden");
+      document.getElementById("manual-toggle").textContent = manual.classList.contains("hidden") ? "How does this work?" : "Hide instructions";
+    });
 
     document.getElementById("create-btn").addEventListener("click", async () => {
       const text = document.getElementById("q-text").value.trim();
