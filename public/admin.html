@@ -64,6 +64,7 @@
     }
     .btn:active { transform: scale(0.97); }
     .btn-success { background: #28a745; color: white; }
+    .btn-primary { background: #667eea; color: white; }
     .actions { display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: center; }
     .link-box {
       background: #e8f5e9;
@@ -77,6 +78,26 @@
     .link-box p { margin-bottom: 0.5rem; color: #555; }
     #admin-controls { text-align: center; margin-top: 1.5rem; }
     .hidden { display: none; }
+
+    /* Question count selector */
+    .question-count-selector {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .question-count-selector label {
+      font-weight: 600;
+      color: #555;
+      margin-right: 0.75rem;
+    }
+    .question-count-selector select {
+      padding: 0.5rem 1rem;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 1rem;
+      background: white;
+      cursor: pointer;
+    }
+    .question-count-selector select:focus { outline: none; border-color: #667eea; }
 
     /* Manual */
     .manual-toggle {
@@ -148,37 +169,88 @@
     <div class="manual" id="manual">
       <h3>How to use</h3>
       <ol>
-        <li>Type your question and fill in the 3 answer options below.</li>
+        <li>Select how many questions you want (1, 2, or 3).</li>
+        <li>Type each question and fill in the 3 answer options.</li>
         <li>Select the correct answer by clicking the radio button next to it.</li>
         <li>Click <strong>Create Quiz</strong> — you'll get a shareable link.</li>
         <li>Share the link with your players (they'll see a waiting screen).</li>
         <li>When everyone is ready, click <strong>Start</strong>.</li>
-        <li>Players have <strong>10 seconds</strong> to pick an answer (with music!).</li>
-        <li>After 10 seconds, results are revealed — correct answer highlighted with a vote bar chart.</li>
-        <li>The results screen stays permanently. That's it!</li>
+        <li>Players have <strong>18 seconds</strong> to pick an answer (with music!).</li>
+        <li>After 18 seconds, results are revealed — correct answer highlighted with a vote bar chart.</li>
+        <li>If you have more questions, click <strong>Next Question</strong> to continue.</li>
       </ol>
     </div>
 
     <div id="quiz-form">
-      <div class="question-block">
-        <h3>Your Question</h3>
-        <input type="text" placeholder="Enter your question..." id="q-text" />
+      <div class="question-count-selector">
+        <label for="question-count">Number of questions:</label>
+        <select id="question-count">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+      </div>
+
+      <div class="question-block" id="q-block-0">
+        <h3>Question 1</h3>
+        <input type="text" placeholder="Enter your question..." class="q-text" />
         <span class="correct-label">Select the correct answer:</span>
         <div class="options">
           <div class="option-row">
-            <input type="radio" name="correct" value="0" id="r0" checked />
+            <input type="radio" name="correct-0" value="0" checked />
             <input type="text" placeholder="Option A" class="q-option" />
           </div>
           <div class="option-row">
-            <input type="radio" name="correct" value="1" id="r1" />
+            <input type="radio" name="correct-0" value="1" />
             <input type="text" placeholder="Option B" class="q-option" />
           </div>
           <div class="option-row">
-            <input type="radio" name="correct" value="2" id="r2" />
+            <input type="radio" name="correct-0" value="2" />
             <input type="text" placeholder="Option C" class="q-option" />
           </div>
         </div>
       </div>
+
+      <div class="question-block hidden" id="q-block-1">
+        <h3>Question 2</h3>
+        <input type="text" placeholder="Enter your question..." class="q-text" />
+        <span class="correct-label">Select the correct answer:</span>
+        <div class="options">
+          <div class="option-row">
+            <input type="radio" name="correct-1" value="0" checked />
+            <input type="text" placeholder="Option A" class="q-option" />
+          </div>
+          <div class="option-row">
+            <input type="radio" name="correct-1" value="1" />
+            <input type="text" placeholder="Option B" class="q-option" />
+          </div>
+          <div class="option-row">
+            <input type="radio" name="correct-1" value="2" />
+            <input type="text" placeholder="Option C" class="q-option" />
+          </div>
+        </div>
+      </div>
+
+      <div class="question-block hidden" id="q-block-2">
+        <h3>Question 3</h3>
+        <input type="text" placeholder="Enter your question..." class="q-text" />
+        <span class="correct-label">Select the correct answer:</span>
+        <div class="options">
+          <div class="option-row">
+            <input type="radio" name="correct-2" value="0" checked />
+            <input type="text" placeholder="Option A" class="q-option" />
+          </div>
+          <div class="option-row">
+            <input type="radio" name="correct-2" value="1" />
+            <input type="text" placeholder="Option B" class="q-option" />
+          </div>
+          <div class="option-row">
+            <input type="radio" name="correct-2" value="2" />
+            <input type="text" placeholder="Option C" class="q-option" />
+          </div>
+        </div>
+      </div>
+
       <div class="actions">
         <button class="btn btn-success" id="create-btn">Create Quiz</button>
       </div>
@@ -199,6 +271,9 @@
         </p>
       </div>
       <div id="quiz-results" class="hidden"></div>
+      <div id="next-question-controls" class="hidden" style="text-align: center; margin-top: 1.5rem;">
+        <button class="btn btn-primary" id="next-btn">Next Question</button>
+      </div>
     </div>
   </div>
 
@@ -206,7 +281,9 @@
   <script>
     const socket = io();
     let quizId = null;
-    let quizData = null;
+    let allQuestions = [];
+    let totalQuestions = 1;
+    let currentQuestionIndex = 0;
 
     document.getElementById("manual-toggle").addEventListener("click", () => {
       const manual = document.getElementById("manual");
@@ -214,22 +291,39 @@
       document.getElementById("manual-toggle").textContent = manual.classList.contains("hidden") ? "How does this work?" : "Hide instructions";
     });
 
-    document.getElementById("create-btn").addEventListener("click", async () => {
-      const text = document.getElementById("q-text").value.trim();
-      const options = [...document.querySelectorAll(".q-option")].map(i => i.value.trim());
-      const correctIndex = parseInt(document.querySelector("input[name=correct]:checked").value);
+    document.getElementById("question-count").addEventListener("change", (e) => {
+      const count = parseInt(e.target.value);
+      for (let i = 0; i < 3; i++) {
+        document.getElementById(`q-block-${i}`).classList.toggle("hidden", i >= count);
+      }
+    });
 
-      if (!text || options.some(o => !o)) {
-        alert("Please fill in all fields!");
-        return;
+    document.getElementById("create-btn").addEventListener("click", async () => {
+      const count = parseInt(document.getElementById("question-count").value);
+      const questions = [];
+
+      for (let i = 0; i < count; i++) {
+        const block = document.getElementById(`q-block-${i}`);
+        const text = block.querySelector(".q-text").value.trim();
+        const options = [...block.querySelectorAll(".q-option")].map(inp => inp.value.trim());
+        const correctIndex = parseInt(block.querySelector(`input[name="correct-${i}"]:checked`).value);
+
+        if (!text || options.some(o => !o)) {
+          alert(`Please fill in all fields for Question ${i + 1}!`);
+          return;
+        }
+
+        questions.push({ text, options, correctIndex });
       }
 
-      quizData = { text, options, correctIndex };
+      allQuestions = questions;
+      totalQuestions = questions.length;
+      currentQuestionIndex = 0;
 
       const res = await fetch("/api/quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questions: [{ text, options, correctIndex }] }),
+        body: JSON.stringify({ questions }),
       });
 
       const data = await res.json();
@@ -250,17 +344,34 @@
       document.getElementById("quiz-running").classList.remove("hidden");
     });
 
-    socket.on("reveal", ({ correctIndex, votes }) => {
+    document.getElementById("next-btn").addEventListener("click", () => {
+      socket.emit("next-question", quizId);
+      document.getElementById("next-question-controls").classList.add("hidden");
+      document.getElementById("quiz-results").classList.add("hidden");
+      document.getElementById("quiz-running").classList.remove("hidden");
+      document.querySelector(".card").style.background = "white";
+      document.querySelector(".card").style.boxShadow = "0 20px 60px rgba(0,0,0,0.3)";
+      document.body.style.background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+    });
+
+    socket.on("new-question", ({ questionIndex }) => {
+      currentQuestionIndex = questionIndex;
+    });
+
+    socket.on("reveal", ({ correctIndex, votes, questionIndex, totalQuestions: total }) => {
+      currentQuestionIndex = questionIndex;
+      totalQuestions = total;
       showResults(correctIndex, votes);
     });
 
     async function showResults(correctIndex, votes) {
-      // Always fetch fresh results from server to ensure accuracy
       try {
         const res = await fetch(`/api/quiz/${quizId}/results`);
         const data = await res.json();
         correctIndex = data.correctIndex;
         votes = data.votes;
+        currentQuestionIndex = data.questionIndex;
+        totalQuestions = data.totalQuestions;
       } catch (e) {}
 
       document.getElementById("quiz-running").classList.add("hidden");
@@ -271,13 +382,14 @@
       const resultsEl = document.getElementById("quiz-results");
       resultsEl.classList.remove("hidden");
 
+      const q = allQuestions[currentQuestionIndex];
       const totalVotes = votes.reduce((a, b) => a + b, 0) || 1;
 
       resultsEl.innerHTML = `
         <div class="results-card">
-          <h2 style="color: white;">Results</h2>
-          <p style="text-align: center; color: rgba(255,255,255,0.9); margin-bottom: 1rem; font-size: 1.1rem;">${quizData.text}</p>
-          ${quizData.options.map((opt, i) => {
+          <h2 style="color: white;">Results — Question ${currentQuestionIndex + 1} of ${totalQuestions}</h2>
+          <p style="text-align: center; color: rgba(255,255,255,0.9); margin-bottom: 1rem; font-size: 1.1rem;">${q.text}</p>
+          ${q.options.map((opt, i) => {
             const pct = Math.round((votes[i] / totalVotes) * 100);
             return `
               <div class="result-option ${i === correctIndex ? 'correct' : 'wrong'}">
@@ -298,6 +410,13 @@
           el.style.width = el.dataset.pct + "%";
         });
       }, 100);
+
+      // Show "Next Question" button if there are more questions
+      if (currentQuestionIndex < totalQuestions - 1) {
+        document.getElementById("next-question-controls").classList.remove("hidden");
+      } else {
+        document.getElementById("next-question-controls").classList.add("hidden");
+      }
     }
   </script>
 </body>

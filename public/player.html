@@ -160,7 +160,7 @@
   <!-- Question Screen -->
   <div class="screen hidden" id="screen-question">
     <div class="question-text" id="q-text"></div>
-    <div class="timer" id="timer">10</div>
+    <div class="timer" id="timer">18</div>
     <div class="options" id="options"></div>
   </div>
 
@@ -169,6 +169,9 @@
     <div class="reveal-title">Results</div>
     <div class="reveal-question" id="reveal-question"></div>
     <div class="reveal-options" id="reveal-options"></div>
+    <div class="hidden" id="waiting-next" style="margin-top: 1.5rem; color: rgba(255,255,255,0.8); font-size: 1.1rem; animation: pulse 2s infinite;">
+      Waiting for the next question...
+    </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -180,6 +183,8 @@
     let selectedAnswer = null;
     let currentQuestionData = null;
     let musicMuted = false;
+    let totalQuestions = 1;
+    let questionIndex = 0;
 
     let audioCtx = null;
     let musicGain = null;
@@ -260,9 +265,11 @@
       if (state === "waiting") showScreen("waiting");
     });
 
-    socket.on("new-question", ({ text, options }) => {
+    socket.on("new-question", ({ text, options, questionIndex: qIdx, totalQuestions: total }) => {
       selectedAnswer = null;
       currentQuestionData = { text, options };
+      questionIndex = qIdx !== undefined ? qIdx : 0;
+      totalQuestions = total !== undefined ? total : 1;
       showScreen("question");
 
       document.getElementById("q-text").textContent = text;
@@ -277,7 +284,7 @@
         optionsEl.appendChild(btn);
       });
 
-      let timeLeft = 10;
+      let timeLeft = 18;
       const timerEl = document.getElementById("timer");
       timerEl.textContent = timeLeft;
       timerEl.classList.remove("urgent");
@@ -294,21 +301,23 @@
     });
 
     function selectAnswer(index, btn) {
-      if (selectedAnswer !== null) return;
+      if (selectedAnswer === index) return;
       selectedAnswer = index;
 
-      document.querySelectorAll(".option-btn").forEach(b => b.classList.add("disabled"));
-      btn.classList.remove("disabled");
+      document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("selected"));
       btn.classList.add("selected");
 
       socket.emit("submit-vote", { quizId, answerIndex: index });
     }
 
-    socket.on("reveal", ({ correctIndex, votes, question, options }) => {
+    socket.on("reveal", ({ correctIndex, votes, question, options, questionIndex: qIdx, totalQuestions: total }) => {
       clearInterval(timerInterval);
       stopMusic();
       playRevealSound();
       showScreen("reveal");
+
+      questionIndex = qIdx !== undefined ? qIdx : 0;
+      totalQuestions = total !== undefined ? total : 1;
 
       const questionText = question || (currentQuestionData && currentQuestionData.text) || "";
       const optionsList = options || (currentQuestionData && currentQuestionData.options) || [];
@@ -333,6 +342,14 @@
           div.querySelector(".vote-bar-fill").style.width = `${pct}%`;
         }, 100);
       });
+
+      // Show waiting message if more questions coming
+      const waitingMsg = document.getElementById("waiting-next");
+      if (questionIndex < totalQuestions - 1) {
+        waitingMsg.classList.remove("hidden");
+      } else {
+        waitingMsg.classList.add("hidden");
+      }
     });
   </script>
 </body>
