@@ -134,22 +134,23 @@
     }
     .results-card h2 { margin-bottom: 1rem; text-align: center; }
     .result-option {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 120px 70px;
       align-items: center;
       padding: 0.75rem 1rem;
       border-radius: 8px;
       margin-bottom: 0.5rem;
       color: white;
       font-weight: 600;
+      text-align: left;
     }
     .result-option.correct { background: rgba(40, 167, 69, 0.9); box-shadow: 0 0 15px rgba(40,167,69,0.4); }
     .result-option.wrong { background: rgba(108, 117, 125, 0.7); }
     .result-bar {
-      flex: 1;
+      width: 100%;
       height: 10px;
       background: rgba(255,255,255,0.3);
       border-radius: 5px;
-      margin: 0 1rem;
       overflow: hidden;
     }
     .result-bar-fill {
@@ -158,7 +159,7 @@
       border-radius: 5px;
       transition: width 1s ease-out;
     }
-    .result-count { min-width: 60px; text-align: right; font-size: 0.9rem; }
+    .result-count { min-width: 60px; text-align: right; font-size: 0.9rem; justify-self: end; }
   </style>
 </head>
 <body>
@@ -269,6 +270,10 @@
         <p style="text-align: center; margin-top: 1rem; color: #555; font-size: 1.1rem;">
           Quiz is running! Waiting for votes...
         </p>
+        <div id="running-question-display" style="margin-top: 1.5rem; background: #f8f9fa; border-radius: 12px; padding: 1.5rem; border: 2px solid #e9ecef;">
+          <h3 id="running-q-title" style="color: #333; margin-bottom: 0.75rem;"></h3>
+          <div id="running-q-options" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+        </div>
       </div>
       <div id="quiz-results" class="hidden"></div>
       <div id="next-question-controls" class="hidden" style="text-align: center; margin-top: 1.5rem;">
@@ -342,6 +347,7 @@
       socket.emit("start-quiz", quizId);
       document.getElementById("admin-controls").classList.add("hidden");
       document.getElementById("quiz-running").classList.remove("hidden");
+      showRunningQuestion(0);
     });
 
     document.getElementById("next-btn").addEventListener("click", () => {
@@ -352,6 +358,7 @@
       document.querySelector(".card").style.background = "white";
       document.querySelector(".card").style.boxShadow = "0 20px 60px rgba(0,0,0,0.3)";
       document.body.style.background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+      showRunningQuestion(currentQuestionIndex + 1);
     });
 
     socket.on("new-question", ({ questionIndex }) => {
@@ -363,6 +370,17 @@
       totalQuestions = total;
       showResults(correctIndex, votes);
     });
+
+    function showRunningQuestion(idx) {
+      const q = allQuestions[idx];
+      document.getElementById("running-q-title").textContent = `Question ${idx + 1}: ${q.text}`;
+      const optionsEl = document.getElementById("running-q-options");
+      optionsEl.innerHTML = q.options.map((opt, i) => `
+        <div style="padding: 0.6rem 1rem; background: ${i === 0 ? '#e21b3c' : i === 1 ? '#1368ce' : '#d89e00'}; color: white; border-radius: 8px; font-weight: 600;">
+          ${String.fromCharCode(65 + i)}) ${opt}
+        </div>
+      `).join('');
+    }
 
     async function showResults(correctIndex, votes) {
       try {
@@ -383,14 +401,15 @@
       resultsEl.classList.remove("hidden");
 
       const q = allQuestions[currentQuestionIndex];
-      const totalVotes = votes.reduce((a, b) => a + b, 0) || 1;
+      const totalVotes = votes.reduce((a, b) => a + b, 0);
+      const maxVotes = Math.max(...votes, 1);
 
       resultsEl.innerHTML = `
         <div class="results-card">
           <h2 style="color: white;">Results — Question ${currentQuestionIndex + 1} of ${totalQuestions}</h2>
           <p style="text-align: center; color: rgba(255,255,255,0.9); margin-bottom: 1rem; font-size: 1.1rem;">${q.text}</p>
           ${q.options.map((opt, i) => {
-            const pct = Math.round((votes[i] / totalVotes) * 100);
+            const pct = Math.round((votes[i] / maxVotes) * 100);
             return `
               <div class="result-option ${i === correctIndex ? 'correct' : 'wrong'}">
                 <span>${i === correctIndex ? '✓' : '✗'} ${opt}</span>
@@ -400,7 +419,7 @@
             `;
           }).join('')}
           <p style="text-align: center; color: rgba(255,255,255,0.7); margin-top: 1rem; font-size: 0.9rem;">
-            Total votes: ${votes.reduce((a, b) => a + b, 0)}
+            Total votes: ${totalVotes}
           </p>
         </div>
       `;
