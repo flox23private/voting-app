@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏄 Surf Quiz Creator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --ocean-1: #023e8a;
+      --ocean-2: #0077b6;
+      --ocean-3: #0096c7;
+      --wave: #00b4d8;
+      --turquoise: #48cae4;
+      --sand-light: #fff9ed;
+      --coral: #ef4444;
+      --sunset: #f97316;
+      --gold: #f59e0b;
+      --correct: #10b981;
+      --text: #1e293b;
+    }
+
+    body {
+      font-family: 'Nunito', -apple-system, sans-serif;
+      background: linear-gradient(180deg, var(--sand-light) 0%, #fef3c7 100%);
+      min-height: 100vh;
+      color: var(--text);
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      position: relative;
+      height: 360px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-video {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      min-width: 100%; min-height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(2,62,138,0.72) 0%, rgba(0,150,199,0.55) 100%);
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 0 2rem;
+    }
+    .hero-title {
+      font-family: 'Pacifico', cursive;
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      color: #fff;
+      text-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      margin-bottom: 0.75rem;
+    }
+    .hero-sub {
+      font-size: 1.15rem;
+      color: rgba(255,255,255,0.92);
+      font-weight: 600;
+    }
+    .wave-shape {
+      position: absolute;
+      bottom: -2px; left: 0;
+      width: 100%;
+      z-index: 3;
+      line-height: 0;
+    }
+    .wave-shape svg { width: 100%; display: block; }
+
+    /* ===== PAGE BODY ===== */
+    .page-body {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    /* ===== MAIN CARD ===== */
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,100,180,0.12);
+      border: 1px solid rgba(0,180,216,0.2);
+    }
+    .card-header {
+      background: linear-gradient(135deg, var(--ocean-1) 0%, var(--ocean-3) 100%);
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .card-header-icon { font-size: 1.8rem; }
+    .card-header-title {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.4rem;
+      color: #fff;
+    }
+    .card-body { padding: 2rem; }
+
+    /* ===== MANUAL ===== */
+    .btn-toggle {
+      background: none;
+      border: none;
+      color: var(--ocean-3);
+      font-size: 0.9rem;
+      font-weight: 700;
+      font-family: 'Nunito', sans-serif;
+      cursor: pointer;
+      text-decoration: underline;
+      display: block;
+      margin: 0 auto 1.5rem;
+    }
+    .manual {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border: 1px solid #bae6fd;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #334155;
+    }
+    .manual h3 { color: var(--ocean-2); margin-bottom: 0.5rem; font-size: 1rem; }
+    .manual ol { padding-left: 1.25rem; }
+    .manual li { margin-bottom: 0.4rem; }
+
+    /* ===== QUESTION COUNT ===== */
+    .question-count-selector {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .question-count-selector label {
+      font-weight: 700;
+      color: var(--ocean-2);
+      margin-right: 0.75rem;
+    }
+    .question-count-selector select {
+      padding: 0.5rem 1rem;
+      border: 2px solid #bae6fd;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: 'Nunito', sans-serif;
+      background: #f0f9ff;
+      cursor: pointer;
+      color: var(--text);
+    }
+    .question-count-selector select:focus { outline: none; border-color: var(--wave); }
+
+    /* ===== QUESTION BLOCKS ===== */
+    .question-block {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border: 2px solid #bae6fd;
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .question-block h3 {
+      color: var(--ocean-2);
+      font-size: 0.92rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .correct-label {
+      font-size: 0.85rem;
+      color: var(--correct);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: 'Nunito', sans-serif;
+      margin-bottom: 0.5rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #fff;
+      color: var(--text);
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--wave);
+      box-shadow: 0 0 0 3px rgba(0,180,216,0.15);
+    }
+    .options { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
+    .option-row { display: flex; align-items: center; gap: 0.5rem; }
+    .option-row input[type="text"] { flex: 1; margin-bottom: 0; }
+    .option-row input[type="radio"] { width: 20px; height: 20px; accent-color: var(--correct); flex-shrink: 0; }
+    .opt-badge {
+      width: 26px; height: 26px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 800;
+      color: white; flex-shrink: 0;
+    }
+    .opt-a { background: #ef4444; }
+    .opt-b { background: #0077b6; }
+    .opt-c { background: #f59e0b; }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-block;
+      padding: 0.85rem 2rem;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      font-family: 'Nunito', sans-serif;
+      cursor: pointer;
+      transition: transform 0.15s, filter 0.15s, box-shadow 0.2s;
+      letter-spacing: 0.02em;
+    }
+    .btn:hover { filter: brightness(1.08); }
+    .btn:active { transform: scale(0.96); }
+    .btn-create {
+      background: linear-gradient(135deg, var(--ocean-2) 0%, var(--ocean-1) 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(0,119,182,0.4);
+    }
+    .btn-start {
+      background: linear-gradient(135deg, var(--sunset) 0%, var(--coral) 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(239,68,68,0.35);
+    }
+    .btn-next {
+      background: linear-gradient(135deg, var(--wave) 0%, var(--turquoise) 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(72,202,228,0.4);
+    }
+    .actions { display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: center; }
+    #admin-controls { text-align: center; margin-top: 1.5rem; }
+    #next-question-controls { text-align: center; margin-top: 1.5rem; }
+
+    /* ===== LINK BOX ===== */
+    .link-box {
+      background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+      border: 2px solid var(--wave);
+      border-radius: 14px;
+      padding: 1.5rem;
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+    .link-box p { color: var(--ocean-2); font-weight: 700; margin-bottom: 0.5rem; }
+    .link-box a { color: var(--ocean-1); font-weight: 800; word-break: break-all; font-size: 1rem; }
+
+    /* ===== RUNNING QUESTION ===== */
+    #running-question-display {
+      margin-top: 1.5rem;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border-radius: 14px;
+      padding: 1.5rem;
+      border: 2px solid #bae6fd;
+    }
+    #running-q-title { color: var(--ocean-2); margin-bottom: 0.75rem; font-weight: 800; font-size: 1rem; }
+
+    /* ===== RESULTS ===== */
+    .results-card {
+      margin-top: 1.5rem;
+      background: linear-gradient(135deg, var(--ocean-1) 0%, var(--ocean-3) 100%);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+    .results-card h2 {
+      color: white;
+      margin-bottom: 0.75rem;
+      text-align: center;
+      font-family: 'Pacifico', cursive;
+      font-size: 1.4rem;
+    }
+    .result-option {
+      display: grid;
+      grid-template-columns: 1fr 120px 70px;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      margin-bottom: 0.5rem;
+      color: white;
+      font-weight: 700;
+    }
+    .result-option.correct {
+      background: linear-gradient(135deg, var(--correct) 0%, #059669 100%);
+      box-shadow: 0 0 20px rgba(16,185,129,0.4);
+    }
+    .result-option.wrong { background: rgba(255,255,255,0.15); }
+    .result-bar { height: 10px; background: rgba(255,255,255,0.3); border-radius: 5px; overflow: hidden; }
+    .result-bar-fill { height: 100%; background: white; border-radius: 5px; transition: width 1s ease-out; }
+    .result-count { text-align: right; font-size: 0.9rem; justify-self: end; }
+
+    /* ===== GALLERY ===== */
+    .gallery-section { margin-top: 3rem; }
+    .section-title {
+      font-family: 'Pacifico', cursive;
+      color: var(--ocean-2);
+      margin-bottom: 1.25rem;
+      text-align: center;
+      font-size: 1.8rem;
+    }
+    .gallery-track {
+      overflow: hidden;
+      border-radius: 16px;
+      position: relative;
+    }
+    .gallery-track::before, .gallery-track::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 80px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .gallery-track::before { left: 0; background: linear-gradient(to right, var(--sand-light), transparent); }
+    .gallery-track::after  { right: 0; background: linear-gradient(to left, var(--sand-light), transparent); }
+    .gallery-inner {
+      display: flex;
+      gap: 1rem;
+      padding: 0.75rem 0;
+      animation: gallery-scroll 28s linear infinite;
+      width: max-content;
+    }
+    .gallery-inner:hover { animation-play-state: paused; }
+    .gallery-img {
+      height: 170px;
+      width: 260px;
+      object-fit: cover;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,100,180,0.2);
+      transition: transform 0.3s;
+      flex-shrink: 0;
+    }
+    .gallery-img:hover { transform: scale(1.03) rotate(-0.5deg); }
+    @keyframes gallery-scroll {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* ===== VIDEO SECTION ===== */
+    .video-section { margin-top: 3rem; }
+    .featured-video-wrapper {
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,100,180,0.2);
+      border: 3px solid rgba(0,180,216,0.3);
+    }
+    .featured-video {
+      width: 100%;
+      display: block;
+      max-height: 440px;
+      object-fit: cover;
+      background: #000;
+    }
+
+    /* ===== FOOTER ===== */
+    .page-footer {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--ocean-3);
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- HERO with autoplay video -->
+  <div class="hero">
+    <video autoplay muted loop playsinline class="hero-video">
+      <source src="/assets/surf-video.mp4" type="video/mp4">
+    </video>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <h1 class="hero-title">🏄 Surf Quiz Creator</h1>
+      <p class="hero-sub">Craft the perfect wave of questions for your crew 🌊</p>
+    </div>
+    <div class="wave-shape">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 80" preserveAspectRatio="none">
+        <path fill="#fff9ed" d="M0,40 C240,80 480,10 720,50 C960,85 1200,20 1440,45 L1440,80 L0,80 Z" opacity="0.55"/>
+        <path fill="#fff9ed" d="M0,55 C180,20 420,75 660,48 C900,22 1140,68 1440,52 L1440,80 L0,80 Z"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="page-body">
+
+    <!-- QUIZ FORM CARD -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-icon">📋</span>
+        <span class="card-header-title">Build Your Quiz</span>
+      </div>
+      <div class="card-body">
+
+        <button class="btn-toggle" id="manual-toggle">Hide instructions</button>
+        <div class="manual" id="manual">
+          <h3>🤙 How to Use</h3>
+          <ol>
+            <li>Select how many questions you want (1, 2, or 3).</li>
+            <li>Type each question and fill in the 3 answer options.</li>
+            <li>Select the correct answer by clicking the radio button next to it.</li>
+            <li>Click <strong>Create Quiz</strong> — you'll get a shareable link.</li>
+            <li>Share the link with your surfers (they'll see a surf video waiting screen!).</li>
+            <li>When everyone is ready, click <strong>Drop In</strong>.</li>
+            <li>Players have <strong>18 seconds</strong> to pick an answer (with music!).</li>
+            <li>After 18 seconds, results are revealed with animated vote bars.</li>
+            <li>If you have more questions, click <strong>Next Wave</strong> to continue.</li>
+          </ol>
+        </div>
+
+        <div id="quiz-form">
+          <div class="question-count-selector">
+            <label for="question-count">🌊 Number of questions:</label>
+            <select id="question-count">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
+          </div>
+
+          <div class="question-block" id="q-block-0">
+            <h3>🏄 Question 1</h3>
+            <input type="text" placeholder="Enter your question..." class="q-text" />
+            <span class="correct-label">✓ Select the correct answer:</span>
+            <div class="options">
+              <div class="option-row">
+                <input type="radio" name="correct-0" value="0" checked />
+                <span class="opt-badge opt-a">A</span>
+                <input type="text" placeholder="Option A" class="q-option" />
+              </div>
+              <div class="option-row">
+                <input type="radio" name="correct-0" value="1" />
+                <span class="opt-badge opt-b">B</span>
+                <input type="text" placeholder="Option B" class="q-option" />
+              </div>
+              <div class="option-row">
+                <input type="radio" name="correct-0" value="2" />
+                <span class="opt-badge opt-c">C</span>
+                <input type="text" placeholder="Option C" class="q-option" />
+              </div>
+            </div>
+          </div>
+
+          <div class="question-block hidden" id="q-block-1">
+            <h3>🏄 Question 2</h3>
+            <input type="text" placeholder="Enter your question..." class="q-text" />
+            <span class="correct-label">✓ Select the correct answer:</span>
+            <div class="options">
+              <div class="option-row">
+                <input type="radio" name="correct-1" value="0" checked />
+                <span class="opt-badge opt-a">A</span>
+                <input type="text" placeholder="Option A" class="q-option" />
+              </div>
+              <div class="option-row">
+                <input type="radio" name="correct-1" value="1" />
+                <span class="opt-badge opt-b">B</span>
+                <input type="text" placeholder="Option B" class="q-option" />
+              </div>
+              <div class="option-row">
+                <input type="radio" name="correct-1" value="2" />
+                <span class="opt-badge opt-c">C</span>
+                <input type="text" placeholder="Option C" class="q-option" />
+              </div>
+            </div>
+          </div>
+
+          <div class="question-block hidden" id="q-block-2">
+            <h3>🏄 Question 3</h3>
+            <input type="text" placeholder="Enter your question..." class="q-text" />
+            <span class="correct-label">✓ Select the correct answer:</span>
+            <div class="options">
+              <div class="option-row">
+                <input type="radio" name="correct-2" value="0" checked />
+                <span class="opt-badge opt-a">A</span>
+                <input type="text" placeholder="Option A" class="q-option" />
+              </div>
+              <div class="option-row">
+                <input type="radio" name="correct-2" value="1" />
+                <span class="opt-badge opt-b">B</span>
+                <input type="text" placeholder="Option B" class="q-option" />
+              </div>
+              <div class="option-row">
+                <input type="radio" name="correct-2" value="2" />
+                <span class="opt-badge opt-c">C</span>
+                <input type="text" placeholder="Option C" class="q-option" />
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-create" id="create-btn">🌊 Create Quiz</button>
+          </div>
+        </div>
+
+        <!-- After quiz created -->
+        <div id="quiz-created" class="hidden">
+          <div class="link-box">
+            <p>🔗 Share this link with your surfers:</p>
+            <a id="share-link" href="#" target="_blank"></a>
+          </div>
+          <div id="admin-controls">
+            <p style="margin:1rem 0;color:#64748b;font-weight:600;">🏄 Players are paddling in...</p>
+            <button class="btn btn-start" id="start-btn">🚀 Drop In — Start Quiz!</button>
+          </div>
+          <div id="quiz-running" class="hidden">
+            <p style="text-align:center;margin-top:1rem;color:#64748b;font-size:1rem;font-weight:600;">
+              🌊 Riding the wave — waiting for votes!
+            </p>
+            <div id="running-question-display">
+              <h3 id="running-q-title"></h3>
+              <div id="running-q-options" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
+            </div>
+          </div>
+          <div id="quiz-results" class="hidden"></div>
+          <div id="next-question-controls" class="hidden">
+            <button class="btn btn-next" id="next-btn">Next Wave 🏄 →</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PHOTO GALLERY — auto-scrolling strip -->
+    <div class="gallery-section">
+      <h2 class="section-title">📸 Surf Gallery</h2>
+      <div class="gallery-track">
+        <div class="gallery-inner">
+          <img src="/assets/surf1.jpg" alt="Surfing" class="gallery-img">
+          <img src="/assets/surf2.jpg" alt="Surfing" class="gallery-img">
+          <img src="/assets/surf3.jpg" alt="Surfing" class="gallery-img">
+          <img src="/assets/surf4.jpg" alt="Surfing" class="gallery-img">
+          <img src="/assets/surf5.jpeg" alt="Surfing" class="gallery-img">
+          <!-- duplicated for seamless loop -->
+          <img src="/assets/surf1.jpg" alt="Surfing" class="gallery-img">
+          <img src="/assets/surf2.jpg" alt="Surfing" class="gallery-img">
+          <img src="/assets/surf3.jpg" alt="Surfing" class="gallery-img">
+          <img src="/assets/surf4.jpg" alt="Surfing" class="gallery-img">
+          <img src="/assets/surf5.jpeg" alt="Surfing" class="gallery-img">
+        </div>
+      </div>
+    </div>
+
+    <!-- EMBEDDED VIDEO -->
+    <div class="video-section">
+      <h2 class="section-title">🎬 Feel the Vibe</h2>
+      <div class="featured-video-wrapper">
+        <video controls class="featured-video" poster="/assets/surf1.jpg">
+          <source src="/assets/surf-video.mp4" type="video/mp4">
+          Your browser does not support video playback.
+        </video>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="page-footer">🤙 Hang Loose — Surf Quiz</footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let quizId = null;
+    let allQuestions = [];
+    let totalQuestions = 1;
+    let currentQuestionIndex = 0;
+
+    document.getElementById("manual-toggle").addEventListener("click", () => {
+      const manual = document.getElementById("manual");
+      manual.classList.toggle("hidden");
+      document.getElementById("manual-toggle").textContent =
+        manual.classList.contains("hidden") ? "🤙 How does this work?" : "Hide instructions";
+    });
+
+    document.getElementById("question-count").addEventListener("change", (e) => {
+      const count = parseInt(e.target.value);
+      for (let i = 0; i < 3; i++) {
+        document.getElementById(`q-block-${i}`).classList.toggle("hidden", i >= count);
+      }
+    });
+
+    document.getElementById("create-btn").addEventListener("click", async () => {
+      const count = parseInt(document.getElementById("question-count").value);
+      const questions = [];
+
+      for (let i = 0; i < count; i++) {
+        const block = document.getElementById(`q-block-${i}`);
+        const text = block.querySelector(".q-text").value.trim();
+        const options = [...block.querySelectorAll(".q-option")].map(inp => inp.value.trim());
+        const correctIndex = parseInt(block.querySelector(`input[name="correct-${i}"]:checked`).value);
+
+        if (!text || options.some(o => !o)) {
+          alert(`Please fill in all fields for Question ${i + 1}! 🌊`);
+          return;
+        }
+        questions.push({ text, options, correctIndex });
+      }
+
+      allQuestions = questions;
+      totalQuestions = questions.length;
+      currentQuestionIndex = 0;
+
+      const res = await fetch("/api/quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questions }),
+      });
+      const data = await res.json();
+      quizId = data.id;
+
+      const link = `${window.location.origin}/holiday/play/${quizId}`;
+      document.getElementById("share-link").href = link;
+      document.getElementById("share-link").textContent = link;
+      document.getElementById("quiz-form").classList.add("hidden");
+      document.getElementById("quiz-created").classList.remove("hidden");
+
+      socket.emit("join-quiz", quizId);
+    });
+
+    document.getElementById("start-btn").addEventListener("click", () => {
+      socket.emit("start-quiz", quizId);
+      document.getElementById("admin-controls").classList.add("hidden");
+      document.getElementById("quiz-running").classList.remove("hidden");
+      showRunningQuestion(0);
+    });
+
+    document.getElementById("next-btn").addEventListener("click", () => {
+      socket.emit("next-question", quizId);
+      document.getElementById("next-question-controls").classList.add("hidden");
+      document.getElementById("quiz-results").classList.add("hidden");
+      document.getElementById("quiz-running").classList.remove("hidden");
+      const card = document.querySelector(".card");
+      card.style.background = "white";
+      card.style.boxShadow = "0 8px 40px rgba(0,100,180,0.12)";
+      showRunningQuestion(currentQuestionIndex + 1);
+    });
+
+    socket.on("new-question", ({ questionIndex }) => {
+      currentQuestionIndex = questionIndex;
+    });
+
+    socket.on("reveal", ({ correctIndex, votes, questionIndex, totalQuestions: total }) => {
+      currentQuestionIndex = questionIndex;
+      totalQuestions = total;
+      showResults(correctIndex, votes);
+    });
+
+    function showRunningQuestion(idx) {
+      const q = allQuestions[idx];
+      document.getElementById("running-q-title").textContent = `Question ${idx + 1}: ${q.text}`;
+      const optionsEl = document.getElementById("running-q-options");
+      const colors = ['#ef4444', '#0077b6', '#f59e0b'];
+      const labels = ['A', 'B', 'C'];
+      optionsEl.innerHTML = q.options.map((opt, i) => `
+        <div style="padding:0.6rem 1rem;background:${colors[i]};color:white;border-radius:10px;font-weight:700;display:flex;align-items:center;gap:0.5rem;">
+          <span style="background:rgba(255,255,255,0.25);border-radius:6px;padding:2px 8px;font-size:0.82rem;">${labels[i]}</span>
+          ${opt}
+        </div>
+      `).join('');
+    }
+
+    async function showResults(correctIndex, votes) {
+      try {
+        const res = await fetch(`/api/quiz/${quizId}/results`);
+        const data = await res.json();
+        correctIndex = data.correctIndex;
+        votes = data.votes;
+        currentQuestionIndex = data.questionIndex;
+        totalQuestions = data.totalQuestions;
+      } catch (e) {}
+
+      document.getElementById("quiz-running").classList.add("hidden");
+
+      const card = document.querySelector(".card");
+      card.style.background = "linear-gradient(135deg, #023e8a 0%, #0096c7 100%)";
+      card.style.boxShadow = "0 8px 40px rgba(0,100,180,0.4)";
+
+      const resultsEl = document.getElementById("quiz-results");
+      resultsEl.classList.remove("hidden");
+
+      const q = allQuestions[currentQuestionIndex];
+      const totalVotes = votes.reduce((a, b) => a + b, 0);
+      const maxVotes = Math.max(...votes, 1);
+
+      resultsEl.innerHTML = `
+        <div class="results-card">
+          <h2>🏆 Results — Q${currentQuestionIndex + 1} of ${totalQuestions}</h2>
+          <p style="text-align:center;color:rgba(255,255,255,0.9);margin-bottom:1rem;font-size:1.05rem;font-weight:600;">${q.text}</p>
+          ${q.options.map((opt, i) => {
+            const pct = Math.round((votes[i] / maxVotes) * 100);
+            return `
+              <div class="result-option ${i === correctIndex ? 'correct' : 'wrong'}">
+                <span>${i === correctIndex ? '⭐' : '✗'} ${opt}</span>
+                <div class="result-bar"><div class="result-bar-fill" style="width:0%" data-pct="${pct}"></div></div>
+                <span class="result-count">${votes[i]} votes</span>
+              </div>`;
+          }).join('')}
+          <p style="text-align:center;color:rgba(255,255,255,0.6);margin-top:1rem;font-size:0.9rem;">🌊 Total votes: ${totalVotes}</p>
+        </div>`;
+
+      setTimeout(() => {
+        resultsEl.querySelectorAll(".result-bar-fill").forEach(el => {
+          el.style.width = el.dataset.pct + "%";
+        });
+      }, 100);
+
+      if (currentQuestionIndex < totalQuestions - 1) {
+        document.getElementById("next-question-controls").classList.remove("hidden");
+      } else {
+        document.getElementById("next-question-controls").classList.add("hidden");
+      }
+    }
+  </script>
+</body>
+</html>
