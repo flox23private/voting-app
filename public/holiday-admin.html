@@ -575,8 +575,12 @@
     const socket = io();
     let quizId = null;
     let allQuestions = [];
-    let totalQuestions = 1;
+    let totalQuestions = 0;
     let currentQuestionIndex = 0;
+
+    socket.on("connect", () => {
+      if (quizId) socket.emit("join-quiz", quizId);
+    });
 
     document.getElementById("manual-toggle").addEventListener("click", () => {
       const manual = document.getElementById("manual");
@@ -648,8 +652,9 @@
       showRunningQuestion(currentQuestionIndex + 1);
     });
 
-    socket.on("new-question", ({ questionIndex }) => {
+    socket.on("new-question", ({ questionIndex, totalQuestions: total }) => {
       currentQuestionIndex = questionIndex;
+      totalQuestions = total;
     });
 
     socket.on("reveal", ({ correctIndex, votes, questionIndex, totalQuestions: total }) => {
