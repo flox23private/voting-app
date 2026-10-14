@@ -44,6 +44,10 @@ app.get("/holiday/play/:id", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "holiday-player.html"));
 });
 
+app.get("/explainer", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "explainer.html"));
+});
+
 app.get("/api/quiz/:id", (req, res) => {
   const quiz = quizzes[req.params.id];
   if (!quiz) return res.status(404).json({ error: "Quiz not found" });
