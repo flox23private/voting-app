@@ -80,6 +80,7 @@
       display: flex;
       justify-content: space-around;
       padding: 0 clamp(6px, 2vw, 20px);
+      z-index: 2;
     }
     .ornament-hang {
       display: flex;
@@ -94,22 +95,21 @@
       50%      { transform: rotate(calc(var(--tilt, 6) * -1deg)); }
     }
     .string {
-      width: 1.5px;
-      height: clamp(52px, 9vw, 88px);
-      background: rgba(255,255,255,0.72);
+      width: 2px;
+      height: clamp(90px, 14vw, 130px);
+      background: rgba(255,255,255,0.75);
     }
     .ornament-icon {
-      font-size: clamp(1.5rem, 3.8vw, 2.4rem);
+      font-size: clamp(2rem, 5vw, 3.2rem);
       line-height: 1;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
     }
 
-    /* Cloud SVG sits below the ornament strings */
+    /* Cloud SVG is a flow element — sits at the very top of the header */
     .cloud-svg {
       display: block;
       width: 100%;
-      position: relative;
-      margin-top: clamp(56px, 11vw, 102px);
+      height: clamp(72px, 11vw, 118px);
     }
 
     /* ===== SCREENS ===== */
@@ -152,8 +152,8 @@
 
     /* ===== QUESTION SCREEN ===== */
     #screen-question {
-      /* push content below the cloud strip */
-      padding-top: clamp(88px, 17vw, 145px);
+      /* push content below cloud + ornament icons */
+      padding-top: clamp(170px, 28vw, 220px);
     }
     .q-counter {
       display: inline-block;
