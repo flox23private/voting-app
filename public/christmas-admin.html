@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎄 Christmas Quiz Creator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Nunito', -apple-system, sans-serif;
+      background: linear-gradient(160deg, #7f0000 0%, #c0392b 50%, #1a5c20 100%);
+      min-height: 100vh;
+      padding: 2rem 1rem 4rem;
+      color: #333;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Subtle snowflakes in background */
+    body::before {
+      content: "❄ ❅ ❆ ❄ ❅ ❆ ❄ ❅";
+      position: fixed;
+      top: 10px; left: 0; right: 0;
+      font-size: 1.4rem;
+      color: rgba(255,255,255,0.12);
+      text-align: justify;
+      padding: 0 2rem;
+      pointer-events: none;
+      letter-spacing: 8vw;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    /* ===== HEADER ===== */
+    .page-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      position: relative;
+    }
+    .page-header h1 {
+      font-family: 'Mountains of Christmas', cursive;
+      font-size: clamp(2.4rem, 7vw, 3.8rem);
+      font-weight: 700;
+      color: white;
+      text-shadow: 0 3px 18px rgba(0,0,0,0.35);
+      margin-bottom: 0.3rem;
+    }
+    .page-header p {
+      color: rgba(255,255,255,0.8);
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    /* ===== CARD ===== */
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 2rem;
+      max-width: 700px;
+      margin: 0 auto 1.5rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+      border-top: 6px solid #c0392b;
+    }
+
+    /* ===== MANUAL ===== */
+    .manual-toggle {
+      display: block;
+      margin: 0 auto 1.25rem;
+      background: none;
+      border: none;
+      color: #c0392b;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: underline;
+      font-family: 'Nunito', sans-serif;
+    }
+    .manual {
+      background: #fff8f8;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid #f5c6c6;
+      font-size: 0.9rem;
+      line-height: 1.65;
+      color: #444;
+    }
+    .manual h3 { color: #c0392b; margin-bottom: 0.5rem; font-size: 1rem; }
+    .manual ol { padding-left: 1.25rem; margin: 0; }
+    .manual li { margin-bottom: 0.4rem; }
+
+    /* ===== FORM ===== */
+    .question-count-selector {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .question-count-selector label {
+      font-weight: 700;
+      color: #555;
+      margin-right: 0.75rem;
+    }
+    .question-count-selector select {
+      padding: 0.5rem 1rem;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      background: white;
+      cursor: pointer;
+      font-family: 'Nunito', sans-serif;
+    }
+    .question-count-selector select:focus { outline: none; border-color: #c0392b; }
+
+    .question-block {
+      background: #fafafa;
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      border: 2px solid #eee;
+    }
+    .question-block h3 {
+      margin-bottom: 0.75rem;
+      color: #c0392b;
+      font-family: 'Mountains of Christmas', cursive;
+      font-size: 1.3rem;
+    }
+    .correct-label {
+      font-size: 0.85rem;
+      color: #1a5c20;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      font-family: 'Nunito', sans-serif;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus { outline: none; border-color: #c0392b; }
+    .options { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
+    .option-row { display: flex; align-items: center; gap: 0.5rem; }
+    .option-row input[type="text"] { flex: 1; margin-bottom: 0; }
+    .option-row input[type="radio"] { width: 20px; height: 20px; accent-color: #1a5c20; }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.75rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Nunito', sans-serif;
+      transition: transform 0.1s, box-shadow 0.2s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-red   { background: linear-gradient(135deg, #c0392b, #96281b); color: white; box-shadow: 0 4px 14px rgba(192,57,43,0.4); }
+    .btn-green { background: linear-gradient(135deg, #1a5c20, #0d3b12); color: white; box-shadow: 0 4px 14px rgba(26,92,32,0.4); }
+    .btn-gold  { background: linear-gradient(135deg, #b8860b, #9b7200); color: white; box-shadow: 0 4px 14px rgba(184,134,11,0.35); }
+    .btn:hover { transform: translateY(-2px); }
+
+    .actions { display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: center; }
+
+    /* ===== SHARE LINK ===== */
+    .link-box {
+      background: linear-gradient(135deg, #fff8f8, #f8fff8);
+      border: 2px solid #c0392b;
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+    .link-box p { margin-bottom: 0.5rem; color: #555; font-weight: 600; }
+    .link-box a { color: #c0392b; font-size: 1.05rem; font-weight: 700; word-break: break-all; }
+
+    #admin-controls { text-align: center; margin-top: 1.5rem; }
+    #admin-controls p { margin-bottom: 1rem; color: #555; }
+
+    /* ===== QUIZ RUNNING ===== */
+    #quiz-running { margin-top: 1.5rem; text-align: center; }
+    #quiz-running p { color: #555; font-size: 1.05rem; margin-bottom: 1rem; }
+    #running-question-display {
+      margin-top: 1rem;
+      background: #fafafa;
+      border-radius: 14px;
+      padding: 1.5rem;
+      border: 2px solid #eee;
+    }
+    #running-q-title { color: #c0392b; font-family: 'Mountains of Christmas', cursive; font-size: 1.25rem; margin-bottom: 0.75rem; }
+    #running-q-options { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    /* ===== RESULTS ===== */
+    .results-card {
+      margin-top: 1.5rem;
+      background: linear-gradient(135deg, #7f0000, #c0392b);
+      border-radius: 14px;
+      padding: 1.5rem;
+    }
+    .results-card h2 { margin-bottom: 1rem; text-align: center; color: #ffd700; font-family: 'Mountains of Christmas', cursive; font-size: 1.6rem; }
+    .result-option {
+      display: grid;
+      grid-template-columns: 1fr 120px 70px;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      margin-bottom: 0.5rem;
+      color: white;
+      font-weight: 700;
+    }
+    .result-option.correct { background: rgba(22,163,74,0.85); box-shadow: 0 0 15px rgba(22,163,74,0.4); }
+    .result-option.wrong   { background: rgba(0,0,0,0.3); }
+    .result-bar { width: 100%; height: 10px; background: rgba(255,255,255,0.3); border-radius: 5px; overflow: hidden; }
+    .result-bar-fill { height: 100%; background: white; border-radius: 5px; transition: width 1s ease-out; }
+    .result-count { min-width: 60px; text-align: right; font-size: 0.9rem; justify-self: end; }
+
+    #next-question-controls { text-align: center; margin-top: 1.5rem; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <h1>🎄 Christmas Quiz Creator</h1>
+    <p>Spread the festive knowledge ❄️</p>
+  </div>
+
+  <div class="card">
+    <button class="manual-toggle" id="manual-toggle">Hide instructions</button>
+    <div class="manual" id="manual">
+      <h3>🎅 How to Use</h3>
+      <ol>
+        <li>Select how many questions you want (1, 2, or 3).</li>
+        <li>Type each question and fill in the 3 answer options.</li>
+        <li>Select the correct answer by clicking the radio button next to it.</li>
+        <li>Click <strong>Create Quiz</strong> — you'll get a shareable link.</li>
+        <li>Share the link with your players (they'll see a Christmas waiting screen!).</li>
+        <li>When everyone is ready, click <strong>Start Quiz</strong>.</li>
+        <li>Players have <strong>18 seconds</strong> to pick an answer (with music!).</li>
+        <li>After 18 seconds, results are revealed with an animated chart.</li>
+        <li>Click <strong>Next Question</strong> to continue to the next one.</li>
+      </ol>
+    </div>
+
+    <div id="quiz-form">
+      <div class="question-count-selector">
+        <label for="question-count">🎁 Number of questions:</label>
+        <select id="question-count">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+      </div>
+
+      <div class="question-block" id="q-block-0">
+        <h3>🦌 Question 1</h3>
+        <input type="text" placeholder="Enter your question..." class="q-text" />
+        <span class="correct-label">✓ Select the correct answer:</span>
+        <div class="options">
+          <div class="option-row">
+            <input type="radio" name="correct-0" value="0" checked />
+            <input type="text" placeholder="Option A" class="q-option" />
+          </div>
+          <div class="option-row">
+            <input type="radio" name="correct-0" value="1" />
+            <input type="text" placeholder="Option B" class="q-option" />
+          </div>
+          <div class="option-row">
+            <input type="radio" name="correct-0" value="2" />
+            <input type="text" placeholder="Option C" class="q-option" />
+          </div>
+        </div>
+      </div>
+
+      <div class="question-block hidden" id="q-block-1">
+        <h3>⛄ Question 2</h3>
+        <input type="text" placeholder="Enter your question..." class="q-text" />
+        <span class="correct-label">✓ Select the correct answer:</span>
+        <div class="options">
+          <div class="option-row">
+            <input type="radio" name="correct-1" value="0" checked />
+            <input type="text" placeholder="Option A" class="q-option" />
+          </div>
+          <div class="option-row">
+            <input type="radio" name="correct-1" value="1" />
+            <input type="text" placeholder="Option B" class="q-option" />
+          </div>
+          <div class="option-row">
+            <input type="radio" name="correct-1" value="2" />
+            <input type="text" placeholder="Option C" class="q-option" />
+          </div>
+        </div>
+      </div>
+
+      <div class="question-block hidden" id="q-block-2">
+        <h3>🔔 Question 3</h3>
+        <input type="text" placeholder="Enter your question..." class="q-text" />
+        <span class="correct-label">✓ Select the correct answer:</span>
+        <div class="options">
+          <div class="option-row">
+            <input type="radio" name="correct-2" value="0" checked />
+            <input type="text" placeholder="Option A" class="q-option" />
+          </div>
+          <div class="option-row">
+            <input type="radio" name="correct-2" value="1" />
+            <input type="text" placeholder="Option B" class="q-option" />
+          </div>
+          <div class="option-row">
+            <input type="radio" name="correct-2" value="2" />
+            <input type="text" placeholder="Option C" class="q-option" />
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-red" id="create-btn">🎄 Create Quiz</button>
+      </div>
+    </div>
+
+    <div id="quiz-created" class="hidden">
+      <div class="link-box">
+        <p>🎁 Share this link with your players:</p>
+        <a id="share-link" href="#" target="_blank"></a>
+      </div>
+      <div id="admin-controls">
+        <p>Players waiting... click Start when everyone is ready! ❄️</p>
+        <button class="btn btn-green" id="start-btn">▶ Start Quiz</button>
+      </div>
+      <div id="quiz-running" class="hidden">
+        <p>🎅 Quiz is running! Waiting for votes...</p>
+        <div id="running-question-display">
+          <h3 id="running-q-title"></h3>
+          <div id="running-q-options"></div>
+        </div>
+      </div>
+      <div id="quiz-results" class="hidden"></div>
+      <div id="next-question-controls" class="hidden">
+        <button class="btn btn-gold" id="next-btn">Next Question ❄️</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let quizId = null;
+    let allQuestions = [];
+    let totalQuestions = 0;
+    let currentQuestionIndex = 0;
+
+    // Re-join room on reconnect
+    socket.on("connect", () => {
+      if (quizId) socket.emit("join-quiz", quizId);
+    });
+
+    document.getElementById("manual-toggle").addEventListener("click", () => {
+      const manual = document.getElementById("manual");
+      manual.classList.toggle("hidden");
+      document.getElementById("manual-toggle").textContent =
+        manual.classList.contains("hidden") ? "🎅 How does this work?" : "Hide instructions";
+    });
+
+    document.getElementById("question-count").addEventListener("change", (e) => {
+      const count = parseInt(e.target.value);
+      for (let i = 0; i < 3; i++) {
+        document.getElementById(`q-block-${i}`).classList.toggle("hidden", i >= count);
+      }
+    });
+
+    document.getElementById("create-btn").addEventListener("click", async () => {
+      const count = parseInt(document.getElementById("question-count").value);
+      const questions = [];
+
+      for (let i = 0; i < count; i++) {
+        const block = document.getElementById(`q-block-${i}`);
+        const text = block.querySelector(".q-text").value.trim();
+        const options = [...block.querySelectorAll(".q-option")].map(inp => inp.value.trim());
+        const correctIndex = parseInt(block.querySelector(`input[name="correct-${i}"]:checked`).value);
+
+        if (!text || options.some(o => !o)) {
+          alert(`Please fill in all fields for Question ${i + 1}! 🎄`);
+          return;
+        }
+        questions.push({ text, options, correctIndex });
+      }
+
+      allQuestions = questions;
+      totalQuestions = questions.length;
+      currentQuestionIndex = 0;
+
+      const res = await fetch("/api/quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questions }),
+      });
+      const data = await res.json();
+      quizId = data.id;
+
+      const link = `${window.location.origin}/christmas/play/${quizId}`;
+      document.getElementById("share-link").href = link;
+      document.getElementById("share-link").textContent = link;
+      document.getElementById("quiz-form").classList.add("hidden");
+      document.getElementById("quiz-created").classList.remove("hidden");
+
+      socket.emit("join-quiz", quizId);
+    });
+
+    document.getElementById("start-btn").addEventListener("click", () => {
+      socket.emit("start-quiz", quizId);
+      document.getElementById("admin-controls").classList.add("hidden");
+      document.getElementById("quiz-running").classList.remove("hidden");
+      showRunningQuestion(0);
+    });
+
+    document.getElementById("next-btn").addEventListener("click", () => {
+      socket.emit("next-question", quizId);
+      document.getElementById("next-question-controls").classList.add("hidden");
+      document.getElementById("quiz-results").classList.add("hidden");
+      document.getElementById("quiz-running").classList.remove("hidden");
+      document.querySelector(".card").style.borderTopColor = "#c0392b";
+      showRunningQuestion(currentQuestionIndex + 1);
+    });
+
+    socket.on("new-question", ({ questionIndex, totalQuestions: total }) => {
+      currentQuestionIndex = questionIndex;
+      totalQuestions = total;
+    });
+
+    socket.on("reveal", ({ correctIndex, votes, questionIndex, totalQuestions: total }) => {
+      currentQuestionIndex = questionIndex;
+      totalQuestions = total;
+      showResults(correctIndex, votes);
+    });
+
+    function showRunningQuestion(idx) {
+      const q = allQuestions[idx];
+      document.getElementById("running-q-title").textContent = `Question ${idx + 1}: ${q.text}`;
+      const optionsEl = document.getElementById("running-q-options");
+      const colors = ["#c0392b", "#1a5c20", "#b8860b"];
+      optionsEl.innerHTML = q.options.map((opt, i) => `
+        <div style="padding:0.6rem 1rem;background:${colors[i]};color:white;border-radius:10px;font-weight:700;">
+          ${String.fromCharCode(65 + i)}) ${opt}
+        </div>
+      `).join('');
+    }
+
+    async function showResults(correctIndex, votes) {
+      try {
+        const res = await fetch(`/api/quiz/${quizId}/results`);
+        const data = await res.json();
+        correctIndex = data.correctIndex;
+        votes = data.votes;
+        currentQuestionIndex = data.questionIndex;
+        totalQuestions = data.totalQuestions;
+      } catch (e) {}
+
+      document.getElementById("quiz-running").classList.add("hidden");
+
+      const resultsEl = document.getElementById("quiz-results");
+      resultsEl.classList.remove("hidden");
+
+      const q = allQuestions[currentQuestionIndex];
+      const totalVotes = votes.reduce((a, b) => a + b, 0);
+      const maxVotes = Math.max(...votes, 1);
+
+      resultsEl.innerHTML = `
+        <div class="results-card">
+          <h2>🎄 Results — Q${currentQuestionIndex + 1} of ${totalQuestions}</h2>
+          <p style="text-align:center;color:rgba(255,255,255,0.9);margin-bottom:1rem;font-weight:600;">${q.text}</p>
+          ${q.options.map((opt, i) => {
+            const pct = Math.round((votes[i] / maxVotes) * 100);
+            return `
+              <div class="result-option ${i === correctIndex ? 'correct' : 'wrong'}">
+                <span>${i === correctIndex ? '⭐' : '✗'} ${opt}</span>
+                <div class="result-bar"><div class="result-bar-fill" style="width:0%" data-pct="${pct}"></div></div>
+                <span class="result-count">${votes[i]} votes</span>
+              </div>`;
+          }).join('')}
+          <p style="text-align:center;color:rgba(255,255,255,0.65);margin-top:1rem;font-size:0.9rem;">
+            ❄️ Total votes: ${totalVotes}
+          </p>
+        </div>`;
+
+      setTimeout(() => {
+        resultsEl.querySelectorAll(".result-bar-fill").forEach(el => {
+          el.style.width = el.dataset.pct + "%";
+        });
+      }, 100);
+
+      if (currentQuestionIndex < totalQuestions - 1) {
+        document.getElementById("next-question-controls").classList.remove("hidden");
+      } else {
+        document.getElementById("next-question-controls").classList.add("hidden");
+      }
+    }
+  </script>
+</body>
+</html>

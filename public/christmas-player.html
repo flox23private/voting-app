@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎄 Christmas Quiz!</title>
+  <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --red:      #c0392b;
+      --dark-red: #7f0000;
+      --green:    #1a5c20;
+      --gold:     #d4a017;
+      --cloud:    #dce8ed;
+    }
+
+    body {
+      font-family: 'Nunito', -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ===== BACKGROUNDS ===== */
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      transition: opacity 0.7s;
+      z-index: -2;
+    }
+    .bg-waiting  { background: linear-gradient(160deg, #ff6035 0%, #c0392b 45%, #7f0000 100%); }
+    .bg-question { background: linear-gradient(170deg, #6b0000 0%, #aa2222 55%, #8b1515 100%); }
+    .bg-reveal   { background: linear-gradient(150deg, #0a2e0e 0%, #1a5c20 55%, #7f0000 100%); }
+
+    body.waiting  .bg-waiting  { opacity: 1; }
+    body.waiting  .bg-question { opacity: 0; }
+    body.waiting  .bg-reveal   { opacity: 0; }
+    body.question .bg-waiting  { opacity: 0; }
+    body.question .bg-question { opacity: 1; }
+    body.question .bg-reveal   { opacity: 0; }
+    body.reveal   .bg-waiting  { opacity: 0; }
+    body.reveal   .bg-question { opacity: 0; }
+    body.reveal   .bg-reveal   { opacity: 1; }
+
+    /* ===== SNOWFLAKES ===== */
+    .snowflakes { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+    .snowflake {
+      position: absolute;
+      top: -30px;
+      color: rgba(255,255,255,0.75);
+      animation: snowfall linear infinite;
+      user-select: none;
+    }
+    @keyframes snowfall {
+      0%   { transform: translateY(-30px) rotate(0deg); opacity: 0.8; }
+      100% { transform: translateY(110vh)  rotate(360deg); opacity: 0; }
+    }
+
+    /* ===== CHRISTMAS HEADER: ornaments + cloud ===== */
+    .xmas-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 5;
+      pointer-events: none;
+      transition: opacity 0.5s;
+    }
+    body.waiting  .xmas-header { opacity: 0.35; }
+    body.question .xmas-header { opacity: 1; }
+    body.reveal   .xmas-header { opacity: 0.45; }
+
+    /* Strings + icons hang from top */
+    .ornaments-row {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: space-around;
+      padding: 0 clamp(6px, 2vw, 20px);
+    }
+    .ornament-hang {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform-origin: top center;
+      animation: sway var(--dur, 3s) ease-in-out infinite;
+      animation-delay: var(--delay, 0s);
+    }
+    @keyframes sway {
+      0%,100% { transform: rotate(calc(var(--tilt, 6) * 1deg)); }
+      50%      { transform: rotate(calc(var(--tilt, 6) * -1deg)); }
+    }
+    .string {
+      width: 1.5px;
+      height: clamp(52px, 9vw, 88px);
+      background: rgba(255,255,255,0.72);
+    }
+    .ornament-icon {
+      font-size: clamp(1.5rem, 3.8vw, 2.4rem);
+      line-height: 1;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+    }
+
+    /* Cloud SVG sits below the ornament strings */
+    .cloud-svg {
+      display: block;
+      width: 100%;
+      position: relative;
+      margin-top: clamp(56px, 11vw, 102px);
+    }
+
+    /* ===== SCREENS ===== */
+    .screen {
+      text-align: center;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 580px;
+      position: relative;
+      z-index: 1;
+    }
+    .hidden { display: none !important; }
+
+    /* ===== WAITING SCREEN ===== */
+    .waiting-icon {
+      font-size: clamp(4.5rem, 15vw, 7.5rem);
+      display: block;
+      margin-bottom: 0.3rem;
+      animation: bob 2.8s ease-in-out infinite;
+    }
+    @keyframes bob {
+      0%,100% { transform: translateY(0) rotate(-3deg); }
+      50%      { transform: translateY(-16px) rotate(3deg); }
+    }
+    .waiting-title {
+      font-family: 'Mountains of Christmas', cursive;
+      font-size: clamp(2.4rem, 9vw, 4.2rem);
+      font-weight: 700;
+      color: white;
+      text-shadow: 0 3px 20px rgba(0,0,0,0.45);
+      margin-bottom: 0.4rem;
+    }
+    .waiting-sub {
+      color: rgba(255,255,255,0.88);
+      font-size: 1.05rem;
+      font-weight: 600;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    /* ===== QUESTION SCREEN ===== */
+    #screen-question {
+      /* push content below the cloud strip */
+      padding-top: clamp(88px, 17vw, 145px);
+    }
+    .q-counter {
+      display: inline-block;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.22);
+      color: rgba(255,255,255,0.95);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.35rem 1.1rem;
+      border-radius: 20px;
+      margin-bottom: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      backdrop-filter: blur(6px);
+    }
+    .question-text {
+      color: white;
+      font-family: 'Mountains of Christmas', cursive;
+      font-size: clamp(1.35rem, 4.8vw, 2.1rem);
+      font-weight: 700;
+      margin-bottom: 1.1rem;
+      padding: 0.9rem 1.25rem;
+      background: rgba(0,0,0,0.28);
+      border: 2px solid rgba(255,255,255,0.22);
+      border-radius: 16px;
+      line-height: 1.4;
+      backdrop-filter: blur(8px);
+    }
+    .timer {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: rgba(255,215,0,0.15);
+      border: 3px solid rgba(255,215,0,0.6);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.1rem;
+      font-size: 2.1rem;
+      font-weight: 800;
+      color: #ffd700;
+      backdrop-filter: blur(6px);
+      transition: all 0.3s;
+    }
+    .timer.urgent {
+      border-color: #ff4444;
+      color: #ff4444;
+      background: rgba(255,68,68,0.2);
+      animation: shake 0.5s infinite;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-3px) rotate(-1deg); }
+      75%      { transform: translateX(3px)  rotate(1deg); }
+    }
+
+    .options { display: flex; flex-direction: column; gap: 0.7rem; }
+    .option-btn {
+      padding: 1rem 1.2rem;
+      border: none;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      font-family: 'Nunito', sans-serif;
+      color: white;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      transition: transform 0.15s, filter 0.15s;
+    }
+    .option-btn:hover:not(.selected):not(.disabled) { transform: translateX(6px); filter: brightness(1.12); }
+    .option-btn:active { transform: scale(0.96); }
+    .option-btn.selected { outline: 4px solid rgba(255,255,255,0.88); transform: scale(0.97); filter: brightness(0.88); }
+    .option-btn.disabled { pointer-events: none; opacity: 0.5; }
+    .option-btn:nth-child(1) { background: linear-gradient(135deg, #c0392b, #96281b); }
+    .option-btn:nth-child(2) { background: linear-gradient(135deg, #1a5c20, #0d3b12); }
+    .option-btn:nth-child(3) { background: linear-gradient(135deg, #b8860b, #9b7200); }
+    .opt-letter {
+      background: rgba(255,255,255,0.25);
+      border-radius: 8px;
+      width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* ===== REVEAL SCREEN ===== */
+    .reveal-title {
+      font-family: 'Mountains of Christmas', cursive;
+      color: #ffd700;
+      font-size: clamp(1.7rem, 5.5vw, 2.5rem);
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      text-shadow: 0 2px 14px rgba(0,0,0,0.4);
+    }
+    .reveal-question {
+      color: rgba(255,255,255,0.95);
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      padding: 0.7rem 1rem;
+      background: rgba(255,255,255,0.14);
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+    }
+    .reveal-options { display: flex; flex-direction: column; gap: 0.6rem; }
+    .reveal-option {
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      font-size: 0.97rem;
+      font-weight: 700;
+      color: white;
+      display: grid;
+      grid-template-columns: 1fr 100px 60px;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .reveal-option.correct {
+      background: linear-gradient(135deg, rgba(22,163,74,0.93), rgba(13,100,45,0.93));
+      box-shadow: 0 0 24px rgba(22,163,74,0.5);
+    }
+    .reveal-option.wrong { background: rgba(0,0,0,0.35); }
+    .vote-bar { background: rgba(255,255,255,0.25); border-radius: 4px; height: 10px; overflow: hidden; }
+    .vote-bar-fill { height: 100%; background: white; border-radius: 4px; transition: width 1.2s ease-out; }
+    .vote-count { text-align: right; font-size: 0.92rem; font-weight: 800; }
+    #waiting-next {
+      margin-top: 1.5rem;
+      color: rgba(255,255,255,0.85);
+      font-size: 1rem;
+      font-weight: 600;
+      animation: pulse 2s infinite;
+    }
+
+    /* ===== MUSIC TOGGLE ===== */
+    .music-toggle {
+      position: fixed;
+      top: 1rem; right: 1rem;
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(8px);
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      width: 44px; height: 44px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: white;
+      z-index: 10;
+      transition: background 0.2s;
+    }
+    .music-toggle:hover { background: rgba(255,255,255,0.32); }
+  </style>
+</head>
+<body class="waiting">
+
+  <!-- Backgrounds -->
+  <div class="bg-layer bg-waiting"></div>
+  <div class="bg-layer bg-question"></div>
+  <div class="bg-layer bg-reveal"></div>
+
+  <!-- Snowflakes (JS-generated) -->
+  <div class="snowflakes" id="snowflakes"></div>
+
+  <!-- Christmas header: ornaments hanging from cloud -->
+  <div class="xmas-header">
+    <div class="ornaments-row">
+      <div class="ornament-hang" style="--dur:3.2s;--delay:0s;--tilt:7">
+        <div class="string"></div><div class="ornament-icon">❄️</div>
+      </div>
+      <div class="ornament-hang" style="--dur:2.8s;--delay:0.4s;--tilt:5">
+        <div class="string"></div><div class="ornament-icon">🎅</div>
+      </div>
+      <div class="ornament-hang" style="--dur:3.5s;--delay:0.15s;--tilt:8">
+        <div class="string"></div><div class="ornament-icon">🎄</div>
+      </div>
+      <div class="ornament-hang" style="--dur:3.0s;--delay:0.6s;--tilt:6">
+        <div class="string"></div><div class="ornament-icon">🎁</div>
+      </div>
+      <div class="ornament-hang" style="--dur:2.6s;--delay:0.1s;--tilt:9">
+        <div class="string"></div><div class="ornament-icon">🧦</div>
+      </div>
+      <div class="ornament-hang" style="--dur:3.3s;--delay:0.5s;--tilt:5">
+        <div class="string"></div><div class="ornament-icon">🔔</div>
+      </div>
+      <div class="ornament-hang" style="--dur:2.9s;--delay:0.3s;--tilt:7">
+        <div class="string"></div><div class="ornament-icon">🍬</div>
+      </div>
+    </div>
+    <!-- Cloud strip below the ornaments -->
+    <svg class="cloud-svg" viewBox="0 0 1440 88" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <path fill="#dce8ed" d="
+        M0,88 L0,52
+        C30,38 55,30 80,44
+        C95,24 118,14 144,30
+        C158,10 184,2  210,18
+        C225,4  250,0  275,14
+        C290,2  315,0  340,14
+        C356,2  382,0  407,15
+        C422,3  447,0  472,15
+        C488,3  513,0  538,15
+        C554,3  580,0  605,15
+        C620,3  646,0  671,15
+        C687,3  713,0  738,15
+        C753,3  779,0  804,15
+        C820,3  846,0  871,15
+        C886,3  912,0  937,15
+        C953,3  979,0  1004,15
+        C1019,3 1045,0 1070,15
+        C1086,3 1112,0 1137,15
+        C1152,3 1178,0 1203,14
+        C1218,3 1244,0 1269,14
+        C1285,3 1311,5 1340,18
+        C1365,10 1400,14 1440,28
+        L1440,0 L0,0 Z
+      "/>
+    </svg>
+  </div>
+
+  <button class="music-toggle" id="music-toggle">🔊</button>
+
+  <!-- WAITING SCREEN -->
+  <div class="screen" id="screen-waiting">
+    <span class="waiting-icon">🎅</span>
+    <div class="waiting-title">Christmas Quiz!</div>
+    <div class="waiting-sub">Waiting for the host... ❄️</div>
+  </div>
+
+  <!-- QUESTION SCREEN -->
+  <div class="screen hidden" id="screen-question">
+    <div class="q-counter" id="q-counter">Question 1 of 1</div>
+    <div class="question-text" id="q-text"></div>
+    <div class="timer" id="timer">18</div>
+    <div class="options" id="options"></div>
+  </div>
+
+  <!-- REVEAL SCREEN -->
+  <div class="screen hidden" id="screen-reveal">
+    <div class="reveal-title" id="reveal-title">🎄 Results</div>
+    <div class="reveal-question" id="reveal-question"></div>
+    <div class="reveal-options" id="reveal-options"></div>
+    <div class="hidden" id="waiting-next">🎄 Waiting for the next question...</div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const quizId = window.location.pathname.split("/").pop();
+
+    // Snowflakes
+    const sfContainer = document.getElementById("snowflakes");
+    const FLAKES = ["❄", "❅", "❆", "·", "•", "*"];
+    for (let i = 0; i < 28; i++) {
+      const f = document.createElement("span");
+      f.className = "snowflake";
+      f.textContent = FLAKES[Math.floor(Math.random() * FLAKES.length)];
+      f.style.left = (Math.random() * 100) + "vw";
+      f.style.fontSize = (0.6 + Math.random() * 1.3) + "rem";
+      f.style.animationDuration = (7 + Math.random() * 11) + "s";
+      f.style.animationDelay = (Math.random() * 12) + "s";
+      sfContainer.appendChild(f);
+    }
+
+    let timerInterval = null;
+    let selectedAnswer = null;
+    let currentQuestionData = null;
+    let musicMuted = false;
+    let totalQuestions = 0;
+    let questionIndex = 0;
+    let audioCtx = null;
+    let musicGain = null;
+
+    function getAudioCtx() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return audioCtx;
+    }
+
+    function playTickMusic() {
+      stopMusic();
+      try {
+        const ctx = getAudioCtx();
+        musicGain = ctx.createGain();
+        musicGain.gain.value = musicMuted ? 0 : 0.13;
+        musicGain.connect(ctx.destination);
+        // Jingle Bells snippet: E E E | E E E | E G C D E
+        const notes = [659, 659, 659, 659, 659, 659, 659, 784, 523, 587, 659, 698, 659];
+        let noteIdx = 0, active = true;
+        function playNote() {
+          if (!active) return;
+          const osc = ctx.createOscillator();
+          osc.type = "triangle";
+          osc.frequency.value = notes[noteIdx % notes.length];
+          osc.connect(musicGain);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.13);
+          noteIdx++;
+          setTimeout(playNote, 260);
+        }
+        playNote();
+        musicGain._stop = () => { active = false; };
+      } catch (e) {}
+    }
+
+    function playRevealSound() {
+      stopMusic();
+      try {
+        const ctx = getAudioCtx();
+        // Ascending Christmas fanfare
+        [523, 659, 784, 1047].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          gain.gain.value = musicMuted ? 0 : 0.17;
+          osc.type = "sine";
+          osc.frequency.value = freq;
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + i * 0.1);
+          osc.stop(ctx.currentTime + i * 0.1 + 0.28);
+        });
+      } catch (e) {}
+    }
+
+    function stopMusic() {
+      if (musicGain && musicGain._stop) musicGain._stop();
+      musicGain = null;
+    }
+
+    document.getElementById("music-toggle").addEventListener("click", () => {
+      musicMuted = !musicMuted;
+      document.getElementById("music-toggle").textContent = musicMuted ? "🔇" : "🔊";
+      if (musicGain) musicGain.gain.value = musicMuted ? 0 : 0.13;
+    });
+
+    function showScreen(name) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
+      document.getElementById(`screen-${name}`).classList.remove("hidden");
+      document.body.className = name;
+    }
+
+    socket.emit("join-quiz", quizId);
+
+    socket.on("quiz-state", ({ state }) => {
+      if (state === "waiting") showScreen("waiting");
+    });
+
+    socket.on("new-question", ({ text, options, questionIndex: qIdx, totalQuestions: total }) => {
+      selectedAnswer = null;
+      currentQuestionData = { text, options };
+      questionIndex = qIdx !== undefined ? qIdx : 0;
+      totalQuestions = total !== undefined ? total : 1;
+      showScreen("question");
+
+      document.getElementById("q-counter").textContent = `Question ${questionIndex + 1} of ${totalQuestions}`;
+      document.getElementById("q-text").textContent = text;
+
+      const optionsEl = document.getElementById("options");
+      optionsEl.innerHTML = "";
+      ["A", "B", "C"].forEach((label, i) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.innerHTML = `<span class="opt-letter">${label}</span>${options[i]}`;
+        btn.addEventListener("click", () => selectAnswer(i, btn));
+        optionsEl.appendChild(btn);
+      });
+
+      let timeLeft = 18;
+      const timerEl = document.getElementById("timer");
+      timerEl.textContent = timeLeft;
+      timerEl.classList.remove("urgent");
+      playTickMusic();
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = timeLeft;
+        if (timeLeft <= 3) timerEl.classList.add("urgent");
+        if (timeLeft <= 0) clearInterval(timerInterval);
+      }, 1000);
+    });
+
+    function selectAnswer(index, btn) {
+      if (selectedAnswer === index) return;
+      selectedAnswer = index;
+      document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      socket.emit("submit-vote", { quizId, answerIndex: index });
+    }
+
+    socket.on("reveal", ({ correctIndex, votes, question, options, questionIndex: qIdx, totalQuestions: total }) => {
+      clearInterval(timerInterval);
+      stopMusic();
+      playRevealSound();
+      showScreen("reveal");
+
+      questionIndex = qIdx !== undefined ? qIdx : 0;
+      totalQuestions = total !== undefined ? total : 1;
+
+      const questionText = question || (currentQuestionData && currentQuestionData.text) || "";
+      const optionsList = options || (currentQuestionData && currentQuestionData.options) || [];
+      const maxVotes = Math.max(...votes, 1);
+
+      document.getElementById("reveal-title").textContent = `🎄 Results — Q${questionIndex + 1} of ${totalQuestions}`;
+      document.getElementById("reveal-question").textContent = questionText;
+
+      const revealEl = document.getElementById("reveal-options");
+      revealEl.innerHTML = "";
+      optionsList.forEach((opt, i) => {
+        const div = document.createElement("div");
+        div.className = `reveal-option ${i === correctIndex ? "correct" : "wrong"}`;
+        const pct = Math.round((votes[i] / maxVotes) * 100);
+        const myChoice = i === selectedAnswer ? "👉 " : "";
+        div.innerHTML = `
+          <span>${myChoice}${i === correctIndex ? "⭐" : "✗"} ${opt}</span>
+          <div class="vote-bar"><div class="vote-bar-fill" style="width:0%"></div></div>
+          <span class="vote-count">${votes[i]} 🗳</span>
+        `;
+        revealEl.appendChild(div);
+        setTimeout(() => { div.querySelector(".vote-bar-fill").style.width = `${pct}%`; }, 100);
+      });
+
+      const waitingMsg = document.getElementById("waiting-next");
+      if (questionIndex < totalQuestions - 1) {
+        waitingMsg.classList.remove("hidden");
+      } else {
+        waitingMsg.classList.add("hidden");
+      }
+    });
+  </script>
+</body>
+</html>
