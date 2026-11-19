@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Awards Night — Vote</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Nunito", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      transition: background 0.5s;
+    }
+
+    body.waiting {
+      background: radial-gradient(ellipse at top, #1a1030 0%, #0a0a14 100%);
+    }
+
+    body.question {
+      background: radial-gradient(ellipse at top, #12192a 0%, #060c18 100%);
+    }
+
+    body.done {
+      background: radial-gradient(ellipse at top, #1a1a0a 0%, #0d0d05 100%);
+    }
+
+    .screen { display: none; width: 100%; min-height: 100vh; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+    /* ── WAITING ── */
+    #screen-waiting {
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .trophy-anim {
+      font-size: clamp(4rem, 15vw, 7rem);
+      animation: float 3s ease-in-out infinite;
+      margin-bottom: 1.5rem;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .waiting-title {
+      font-family: "Playfair Display", serif;
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      color: #d4af37;
+      margin-bottom: 0.8rem;
+    }
+
+    .waiting-sub {
+      color: #6b6b8a;
+      font-size: 1rem;
+    }
+
+    .session-badge {
+      display: inline-block;
+      margin-top: 2rem;
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 20px;
+      padding: 0.4rem 1.2rem;
+      font-size: 0.85rem;
+      color: #d4af37;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── QUESTION ── */
+    #screen-question {
+      padding: clamp(1rem, 4vw, 2rem);
+      padding-top: clamp(1.5rem, 5vw, 3rem);
+    }
+
+    .award-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      width: 100%;
+      max-width: 680px;
+    }
+
+    .award-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: #d4af37;
+      margin-bottom: 0.4rem;
+    }
+
+    .award-name {
+      font-family: "Playfair Display", serif;
+      font-size: clamp(1.1rem, 3vw, 1.8rem);
+      color: #e8e0d0;
+      line-height: 1.3;
+    }
+
+    .timer-bar-wrap {
+      width: 100%;
+      max-width: 680px;
+      height: 6px;
+      background: #1e2530;
+      border-radius: 3px;
+      margin-bottom: 0.8rem;
+      overflow: hidden;
+    }
+
+    .timer-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #d4af37, #f0d060);
+      border-radius: 3px;
+      transition: width 1s linear;
+    }
+
+    .timer-num {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #d4af37;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      width: 100%;
+    }
+
+    .teams-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
+      width: 100%;
+      max-width: 680px;
+    }
+
+    @media (max-width: 480px) {
+      .teams-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 300px) {
+      .teams-grid { grid-template-columns: 1fr; }
+    }
+
+    .team-btn {
+      border: none;
+      border-radius: 10px;
+      padding: clamp(0.7rem, 2vw, 1.1rem) 0.6rem;
+      font-family: "Nunito", sans-serif;
+      font-size: clamp(0.7rem, 1.5vw, 0.85rem);
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      color: #fff;
+      transition: transform 0.1s, box-shadow 0.15s, opacity 0.15s;
+      line-height: 1.3;
+      position: relative;
+    }
+
+    .team-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+    .team-btn:active { transform: translateY(0); }
+
+    .team-btn.selected::after {
+      content: "✓";
+      position: absolute;
+      top: 4px;
+      right: 7px;
+      font-size: 0.75rem;
+    }
+
+    .team-btn.selected {
+      box-shadow: 0 0 0 3px #fff, 0 0 0 5px currentColor;
+      transform: scale(1.03);
+    }
+
+    .team-letter {
+      display: block;
+      font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+      margin-bottom: 0.25rem;
+      opacity: 0.75;
+    }
+
+    /* 9 team colours */
+    .team-btn:nth-child(1) { background: #c0392b; }
+    .team-btn:nth-child(2) { background: #2471a3; }
+    .team-btn:nth-child(3) { background: #b7950b; }
+    .team-btn:nth-child(4) { background: #1e8449; }
+    .team-btn:nth-child(5) { background: #7d3c98; }
+    .team-btn:nth-child(6) { background: #ca6f1e; }
+    .team-btn:nth-child(7) { background: #148f77; }
+    .team-btn:nth-child(8) { background: #c0392b; filter: hue-rotate(300deg); }
+    .team-btn:nth-child(9) { background: #566573; }
+
+    /* ── DONE ── */
+    #screen-done {
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .done-trophy {
+      font-size: clamp(4rem, 15vw, 7rem);
+      animation: pulse 2s ease-in-out infinite;
+      margin-bottom: 1.5rem;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+    }
+
+    .done-title {
+      font-family: "Playfair Display", serif;
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      color: #d4af37;
+      margin-bottom: 0.8rem;
+    }
+
+    .done-sub { color: #6b6b8a; font-size: 1rem; }
+  </style>
+</head>
+<body class="waiting">
+
+  <div id="screen-waiting" class="screen active">
+    <div class="trophy-anim">🏆</div>
+    <div class="waiting-title">Awards Night</div>
+    <div class="waiting-sub">Waiting for voting to begin…</div>
+    <div class="session-badge" id="session-badge">Session —</div>
+  </div>
+
+  <div id="screen-question" class="screen">
+    <div class="award-header">
+      <div class="award-label">Cast your vote</div>
+      <div class="award-name" id="award-name">—</div>
+    </div>
+    <div class="timer-bar-wrap">
+      <div class="timer-bar" id="timer-bar" style="width:100%"></div>
+    </div>
+    <div class="timer-num" id="timer-num">20</div>
+    <div class="teams-grid" id="teams-grid"></div>
+  </div>
+
+  <div id="screen-done" class="screen">
+    <div class="done-trophy">🎉</div>
+    <div class="done-title">Thank you for voting!</div>
+    <div class="done-sub">Results will be announced shortly.</div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const parts = window.location.pathname.split("/");
+    const session = parts[3];
+    const eventId = parts[4];
+
+    document.getElementById("session-badge").textContent = `Session ${session}`;
+
+    const socket = io();
+    let selectedIndex = null;
+    let countdownInterval = null;
+    let timerDuration = 20;
+
+    function showScreen(name) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      document.getElementById(`screen-${name}`).classList.add("active");
+    }
+
+    socket.on("connect", () => {
+      socket.emit("join-award", { eventId, session });
+    });
+
+    socket.on("award-state", ({ state }) => {
+      if (state === "waiting") {
+        document.body.className = "waiting";
+        showScreen("waiting");
+      }
+    });
+
+    socket.on("award-question", ({ text, teams }) => {
+      selectedIndex = null;
+      document.body.className = "question";
+      document.getElementById("award-name").textContent = text;
+
+      const grid = document.getElementById("teams-grid");
+      grid.innerHTML = "";
+      teams.forEach((name, i) => {
+        const btn = document.createElement("button");
+        btn.className = "team-btn";
+        btn.dataset.index = i;
+
+        const letter = document.createElement("span");
+        letter.className = "team-letter";
+        letter.textContent = String.fromCharCode(65 + i);
+        btn.appendChild(letter);
+        btn.appendChild(document.createTextNode(name));
+
+        btn.addEventListener("click", () => castVote(i));
+        grid.appendChild(btn);
+      });
+
+      startCountdown(timerDuration);
+      showScreen("question");
+    });
+
+    function castVote(teamIndex) {
+      selectedIndex = teamIndex;
+      document.querySelectorAll(".team-btn").forEach((b, i) => {
+        b.classList.toggle("selected", i === teamIndex);
+      });
+      socket.emit("submit-award-vote", { eventId, session, teamIndex });
+    }
+
+    function startCountdown(secs) {
+      clearInterval(countdownInterval);
+      let remaining = secs;
+      const bar = document.getElementById("timer-bar");
+      const num = document.getElementById("timer-num");
+
+      bar.style.transition = "none";
+      bar.style.width = "100%";
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          bar.style.transition = `width ${secs}s linear`;
+          bar.style.width = "0%";
+        });
+      });
+
+      num.textContent = remaining;
+      countdownInterval = setInterval(() => {
+        remaining--;
+        num.textContent = Math.max(0, remaining);
+        if (remaining <= 0) clearInterval(countdownInterval);
+      }, 1000);
+    }
+
+    socket.on("award-done", () => {
+      clearInterval(countdownInterval);
+      document.body.className = "done";
+      showScreen("done");
+    });
+  </script>
+</body>
+</html>
