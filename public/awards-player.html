@@ -130,69 +130,57 @@
     }
 
     .teams-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
       width: 100%;
-      max-width: 680px;
-    }
-
-    @media (max-width: 480px) {
-      .teams-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    @media (max-width: 300px) {
-      .teams-grid { grid-template-columns: 1fr; }
+      max-width: 520px;
     }
 
     .team-btn {
       border: none;
       border-radius: 10px;
-      padding: clamp(0.7rem, 2vw, 1.1rem) 0.6rem;
+      padding: 0.85rem 1rem;
       font-family: "Nunito", sans-serif;
-      font-size: clamp(0.7rem, 1.5vw, 0.85rem);
+      font-size: clamp(0.85rem, 2.2vw, 1rem);
       font-weight: 700;
       cursor: pointer;
-      text-align: center;
-      color: #fff;
-      transition: transform 0.1s, box-shadow 0.15s, opacity 0.15s;
-      line-height: 1.3;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: transform 0.1s, box-shadow 0.15s;
       position: relative;
+      width: 100%;
     }
 
-    .team-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
-    .team-btn:active { transform: translateY(0); }
+    .team-btn:hover { transform: translateX(3px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+    .team-btn:active { transform: translateX(0); }
+
+    .team-btn.selected {
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.8), 0 4px 16px rgba(0,0,0,0.4);
+      transform: translateX(3px);
+    }
 
     .team-btn.selected::after {
       content: "✓";
       position: absolute;
-      top: 4px;
-      right: 7px;
-      font-size: 0.75rem;
-    }
-
-    .team-btn.selected {
-      box-shadow: 0 0 0 3px #fff, 0 0 0 5px currentColor;
-      transform: scale(1.03);
+      right: 1rem;
+      font-size: 1rem;
     }
 
     .team-letter {
-      display: block;
-      font-size: clamp(0.9rem, 2.5vw, 1.2rem);
-      margin-bottom: 0.25rem;
-      opacity: 0.75;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      background: rgba(0,0,0,0.15);
     }
-
-    /* 9 team colours */
-    .team-btn:nth-child(1) { background: #c0392b; }
-    .team-btn:nth-child(2) { background: #2471a3; }
-    .team-btn:nth-child(3) { background: #b7950b; }
-    .team-btn:nth-child(4) { background: #1e8449; }
-    .team-btn:nth-child(5) { background: #7d3c98; }
-    .team-btn:nth-child(6) { background: #ca6f1e; }
-    .team-btn:nth-child(7) { background: #148f77; }
-    .team-btn:nth-child(8) { background: #c0392b; filter: hue-rotate(300deg); }
-    .team-btn:nth-child(9) { background: #566573; }
 
     /* ── DONE ── */
     #screen-done {
@@ -254,7 +242,20 @@
     const session = parts[3];
     const eventId = parts[4];
 
-    document.getElementById("session-badge").textContent = `Session ${session}`;
+    const SESSION_NAMES = { A: "Jury Voting", B: "Team Voting" };
+    const TEAM_COLORS = [
+      { bg: "#D1EFFF", text: "#00144A" },
+      { bg: "#B7D4E8", text: "#00144A" },
+      { bg: "#9DB8D2", text: "#00144A" },
+      { bg: "#839DBB", text: "#00144A" },
+      { bg: "#6982A5", text: "#00144A" },
+      { bg: "#4E668E", text: "#ffffff" },
+      { bg: "#344B77", text: "#ffffff" },
+      { bg: "#1A2F61", text: "#ffffff" },
+      { bg: "#00144A", text: "#ffffff" },
+    ];
+
+    document.getElementById("session-badge").textContent = SESSION_NAMES[session] || `Session ${session}`;
 
     const socket = io();
     let selectedIndex = null;
@@ -285,9 +286,12 @@
       const grid = document.getElementById("teams-grid");
       grid.innerHTML = "";
       teams.forEach((name, i) => {
+        const { bg, text } = TEAM_COLORS[i] || { bg: "#00144A", text: "#ffffff" };
         const btn = document.createElement("button");
         btn.className = "team-btn";
         btn.dataset.index = i;
+        btn.style.background = bg;
+        btn.style.color = text;
 
         const letter = document.createElement("span");
         letter.className = "team-letter";
