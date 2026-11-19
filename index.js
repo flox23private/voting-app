@@ -189,4 +189,5 @@ io.on("connection", (socket) => {
 server.listen(PORT, () => {
   console.log(`Voting App running at http://localhost:${PORT}`);
   console.log(`Admin panel: http://localhost:${PORT}/admin`);
+  console.log(`Christmas: http://localhost:${PORT}/christmas`);
 });
