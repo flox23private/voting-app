@@ -3,14 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Awards Night — Vote</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet" />
+  <title>Awards Morning — Vote</title>
+  <style>
+    @font-face { font-family:"72Brand"; src:local("72Brand-Light"),local("72Brand Light"); font-weight:300; }
+    @font-face { font-family:"72Brand"; src:local("72Brand-Regular"),local("72Brand Regular"); font-weight:400; }
+    @font-face { font-family:"72Brand"; src:local("72Brand-Medium"),local("72Brand Medium"); font-weight:500; }
+    @font-face { font-family:"72Brand"; src:local("72Brand-Bold"),local("72Brand Bold"); font-weight:700; }
+    @font-face { font-family:"72Brand"; src:local("72Brand-Black"),local("72Brand Black"); font-weight:900; }
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: "Nunito", sans-serif;
+      font-family: "72Brand", Arial, sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -52,7 +56,7 @@
     }
 
     .waiting-title {
-      font-family: "Playfair Display", serif;
+      font-family: "72Brand", Arial, sans-serif;
       font-size: clamp(1.4rem, 4vw, 2.2rem);
       color: #d4af37;
       margin-bottom: 0.8rem;
@@ -97,7 +101,7 @@
     }
 
     .award-name {
-      font-family: "Playfair Display", serif;
+      font-family: "72Brand", Arial, sans-serif;
       font-size: clamp(1.1rem, 3vw, 1.8rem);
       color: #e8e0d0;
       line-height: 1.3;
@@ -141,7 +145,7 @@
       border: none;
       border-radius: 10px;
       padding: 0.85rem 1rem;
-      font-family: "Nunito", sans-serif;
+      font-family: "72Brand", Arial, sans-serif;
       font-size: clamp(0.85rem, 2.2vw, 1rem);
       font-weight: 700;
       cursor: pointer;
@@ -200,7 +204,7 @@
     }
 
     .done-title {
-      font-family: "Playfair Display", serif;
+      font-family: "72Brand", Arial, sans-serif;
       font-size: clamp(1.6rem, 4vw, 2.4rem);
       color: #d4af37;
       margin-bottom: 0.8rem;
@@ -213,7 +217,7 @@
 
   <div id="screen-waiting" class="screen active">
     <div class="trophy-anim">🏆</div>
-    <div class="waiting-title">Awards Night</div>
+    <div class="waiting-title">Awards Morning</div>
     <div class="waiting-sub">Waiting for voting to begin…</div>
     <div class="session-badge" id="session-badge">Session —</div>
   </div>
