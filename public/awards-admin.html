@@ -3,9 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Awards Night — Host</title>
+  <title>Awards Morning — Host</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    @font-face { font-family:"72Brand"; src:local("72Brand-Light"),local("72Brand Light"); font-weight:300; }
+    @font-face { font-family:"72Brand"; src:local("72Brand-Regular"),local("72Brand Regular"); font-weight:400; }
+    @font-face { font-family:"72Brand"; src:local("72Brand-Medium"),local("72Brand Medium"); font-weight:500; }
+    @font-face { font-family:"72Brand"; src:local("72Brand-Bold"),local("72Brand Bold"); font-weight:700; }
+    @font-face { font-family:"72Brand"; src:local("72Brand-Black"),local("72Brand Black"); font-weight:900; }
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -18,26 +24,107 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      padding: 2rem 1rem;
+      padding: 0 0 2rem 0;
     }
 
-    h1 {
-      font-family: "Playfair Display", serif;
-      font-size: clamp(1.6rem, 4vw, 2.6rem);
-      color: #d4af37;
-      text-align: center;
-      letter-spacing: 0.03em;
+    /* ── HERO BANNER ── */
+    .hero {
+      width: 100%;
+      aspect-ratio: 1200 / 414;
+      max-height: 320px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+
+    .hero-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 60% center;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        105deg,
+        rgba(22,10,72,0.97) 0%,
+        rgba(30,15,95,0.92) 30%,
+        rgba(45,27,130,0.68) 55%,
+        rgba(45,27,130,0.18) 80%,
+        transparent 100%
+      );
+    }
+
+    .hero-vignette {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(10,5,40,0.55) 0%, transparent 50%);
+    }
+
+    .hero-text {
+      position: absolute;
+      left: 5%;
+      bottom: 16%;
+    }
+
+    .hero-eyebrow {
+      font-family: "72Brand", "Nunito", sans-serif;
+      font-weight: 300;
+      font-size: clamp(0.6rem, 1vw, 0.85rem);
+      color: rgba(200,185,255,0.72);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
       margin-bottom: 0.4rem;
     }
 
-    .subtitle {
-      font-size: 0.9rem;
-      color: #7a7a8a;
-      text-align: center;
-      margin-bottom: 2.5rem;
+    .hero-title {
+      font-family: "72Brand", "Nunito", sans-serif;
+      font-weight: 700;
+      font-size: clamp(1.8rem, 4.5vw, 3.6rem);
+      color: #fff;
+      line-height: 1;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.4rem;
     }
 
-    .screen { display: none; width: 100%; max-width: 800px; }
+    .hero-sub {
+      font-family: "72Brand", "Nunito", sans-serif;
+      font-weight: 400;
+      font-size: clamp(0.75rem, 1.3vw, 1rem);
+      color: rgba(200,185,255,0.65);
+      letter-spacing: 0.04em;
+    }
+
+    .hero-badge {
+      position: absolute;
+      top: 11%;
+      right: 4%;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.22);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 100px;
+      padding: 0.3rem 0.9rem;
+      font-family: "72Brand", "Nunito", sans-serif;
+      font-weight: 500;
+      font-size: clamp(0.55rem, 0.85vw, 0.75rem);
+      color: rgba(255,255,255,0.85);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* ── PAGE CONTENT WRAPPER ── */
+    .page-content {
+      width: 100%;
+      max-width: 800px;
+      padding: 0 1rem;
+    }
+
+    .screen { display: none; width: 100%; }
     .screen.active { display: block; }
 
     /* ── SETUP SCREEN ── */
@@ -222,7 +309,7 @@
     }
 
     .done-panel h2 {
-      font-family: "Playfair Display", serif;
+      font-family: "72Brand", "Nunito", sans-serif;
       font-size: 2rem;
       color: #d4af37;
       margin-bottom: 1rem;
@@ -238,7 +325,7 @@
     }
 
     .award-section h2 {
-      font-family: "Playfair Display", serif;
+      font-family: "72Brand", "Nunito", sans-serif;
       font-size: 1.3rem;
       color: #d4af37;
       margin-bottom: 1.5rem;
@@ -306,8 +393,20 @@
   </style>
 </head>
 <body>
-  <h1>Awards Night</h1>
-  <p class="subtitle">Host panel</p>
+  <!-- HERO BANNER -->
+  <div class="hero">
+    <img class="hero-img" src="/surf-banner.png" alt="" />
+    <div class="hero-overlay"></div>
+    <div class="hero-vignette"></div>
+    <div class="hero-badge">🏆 Host panel</div>
+    <div class="hero-text">
+      <div class="hero-eyebrow">Analytics Platform and Engineering</div>
+      <div class="hero-title">Awards Morning</div>
+      <div class="hero-sub">AI Delivery-Day</div>
+    </div>
+  </div>
+
+  <div class="page-content">
 
   <!-- SETUP -->
   <div id="screen-setup" class="screen active">
@@ -368,10 +467,12 @@
   <!-- RESULTS -->
   <div id="screen-results" class="screen">
     <div style="text-align:center;margin-bottom:2rem;">
-      <h2 style="font-family:'Playfair Display',serif;color:#d4af37;font-size:1.8rem;">Results</h2>
+      <h2 style="font-family:'72Brand','Nunito',sans-serif;font-weight:700;color:#d4af37;font-size:1.8rem;">Results</h2>
     </div>
     <div id="results-container"></div>
   </div>
+
+  </div><!-- end .page-content -->
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
