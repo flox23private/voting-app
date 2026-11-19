@@ -543,6 +543,9 @@
     }
 
     init();
-  </script>
+
+    // Keep Render free-tier server alive — pings every 10 min to prevent spindown
+    setInterval(() => fetch("/api/award", { method: "HEAD" }).catch(() => {}), 10 * 60 * 1000);
+</script>
 </body>
 </html>
