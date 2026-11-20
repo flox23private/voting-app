@@ -93,19 +93,12 @@ app.get("/api/award/:id/results", (req, res) => {
   const event = awardEvents[req.params.id];
   if (!event) return res.status(404).json({ error: "Not found" });
 
-  const rankTeamsDesc = (votes) => {
-    const sorted = votes.map((v, i) => ({ i, v })).sort((a, b) => b.v - a.v);
-    const ranks = new Array(9).fill(0);
-    sorted.forEach((item, rank) => { ranks[item.i] = rank + 1; });
-    return ranks;
-  };
+  // Standard competition ranking: equal scores → equal rank (1224 not 1234)
+  const rankTeamsDesc = (votes) =>
+    votes.map(v => 1 + votes.filter(other => other > v).length);
 
-  const rankTeamsAsc = (scores) => {
-    const sorted = scores.map((v, i) => ({ i, v })).sort((a, b) => a.v - b.v);
-    const ranks = new Array(9).fill(0);
-    sorted.forEach((item, rank) => { ranks[item.i] = rank + 1; });
-    return ranks;
-  };
+  const rankTeamsAsc = (scores) =>
+    scores.map(s => 1 + scores.filter(other => other < s).length);
 
   const results = AWARD_QUESTIONS.map((question, qIdx) => {
     const votesA = event.sessions.A.votes[qIdx];
