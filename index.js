@@ -93,9 +93,11 @@ app.get("/api/award/:id/results", (req, res) => {
   const event = awardEvents[req.params.id];
   if (!event) return res.status(404).json({ error: "Not found" });
 
-  // Standard competition ranking: equal scores → equal rank (1224 not 1234)
-  const rankTeamsDesc = (votes) =>
-    votes.map(v => 1 + votes.filter(other => other > v).length);
+  // Standard competition ranking among voted teams; 0 votes always = last place
+  const rankTeamsDesc = (votes) => {
+    const last = votes.length;
+    return votes.map(v => v === 0 ? last : 1 + votes.filter(other => other > v).length);
+  };
 
   const rankTeamsAsc = (scores) =>
     scores.map(s => 1 + scores.filter(other => other < s).length);
