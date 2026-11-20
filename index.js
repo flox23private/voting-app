@@ -93,8 +93,15 @@ app.get("/api/award/:id/results", (req, res) => {
   const event = awardEvents[req.params.id];
   if (!event) return res.status(404).json({ error: "Not found" });
 
-  const rankTeams = (votes) => {
+  const rankTeamsDesc = (votes) => {
     const sorted = votes.map((v, i) => ({ i, v })).sort((a, b) => b.v - a.v);
+    const ranks = new Array(9).fill(0);
+    sorted.forEach((item, rank) => { ranks[item.i] = rank + 1; });
+    return ranks;
+  };
+
+  const rankTeamsAsc = (scores) => {
+    const sorted = scores.map((v, i) => ({ i, v })).sort((a, b) => a.v - b.v);
     const ranks = new Array(9).fill(0);
     sorted.forEach((item, rank) => { ranks[item.i] = rank + 1; });
     return ranks;
@@ -103,15 +110,17 @@ app.get("/api/award/:id/results", (req, res) => {
   const results = AWARD_QUESTIONS.map((question, qIdx) => {
     const votesA = event.sessions.A.votes[qIdx];
     const votesB = event.sessions.B.votes[qIdx];
-    const combined = votesA.map((v, i) => v + votesB[i]);
+    const rankA = rankTeamsDesc(votesA);
+    const rankB = rankTeamsDesc(votesB);
+    const rankSum = rankA.map((r, i) => r + rankB[i]); // lower = better
     return {
       question,
       votesA,
       votesB,
-      combined,
-      rankA: rankTeams(votesA),
-      rankB: rankTeams(votesB),
-      rankCombined: rankTeams(combined),
+      rankA,
+      rankB,
+      rankSum,
+      rankCombined: rankTeamsAsc(rankSum), // rank 1 = lowest sum = winner
     };
   });
 

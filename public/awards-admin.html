@@ -584,7 +584,7 @@
       const container = document.getElementById("results-container");
       container.innerHTML = "";
 
-      results.forEach(({ question, votesA, votesB, combined, rankA, rankB, rankCombined }) => {
+      results.forEach(({ question, votesA, votesB, rankA, rankB, rankSum, rankCombined }) => {
         const section = document.createElement("div");
         section.className = "award-section";
 
@@ -596,12 +596,12 @@
         cols.className = "results-cols";
 
         const colData = [
-          { label: "Jury Voting", votes: votesA, ranks: rankA },
-          { label: "Team Voting", votes: votesB, ranks: rankB },
-          { label: "Combined", votes: combined, ranks: rankCombined },
+          { label: "Jury Voting", values: votesA, ranks: rankA, suffix: " votes" },
+          { label: "Team Voting", values: votesB, ranks: rankB, suffix: " votes" },
+          { label: "Combined", values: rankSum, ranks: rankCombined, suffix: " pts", lowerIsBetter: true },
         ];
 
-        colData.forEach(({ label, votes, ranks }) => {
+        colData.forEach(({ label, values, ranks, suffix, lowerIsBetter }) => {
           const col = document.createElement("div");
           col.className = "results-col";
 
@@ -610,10 +610,10 @@
           col.appendChild(h3);
 
           const order = teams
-            .map((name, i) => ({ name, votes: votes[i], rank: ranks[i] }))
+            .map((name, i) => ({ name, value: values[i], rank: ranks[i] }))
             .sort((a, b) => a.rank - b.rank);
 
-          order.forEach(({ name, votes: v, rank }) => {
+          order.forEach(({ name, value, rank }) => {
             const row = document.createElement("div");
             row.className = "rank-row" + (rank === 1 ? " winner" : "");
 
@@ -625,13 +625,13 @@
             team.className = "rank-team";
             team.textContent = name;
 
-            const voteCount = document.createElement("span");
-            voteCount.className = "rank-votes";
-            voteCount.textContent = v;
+            const val = document.createElement("span");
+            val.className = "rank-votes";
+            val.textContent = value + suffix;
 
             row.appendChild(num);
             row.appendChild(team);
-            row.appendChild(voteCount);
+            row.appendChild(val);
             col.appendChild(row);
           });
 
